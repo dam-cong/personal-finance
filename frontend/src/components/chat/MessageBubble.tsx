@@ -1,4 +1,5 @@
 import { formatVND } from '../../lib/format'
+import DeleteIconButton from '../ui/DeleteIconButton'
 import type { ChatMessage } from '../../types'
 
 interface Props {
@@ -36,13 +37,11 @@ export default function MessageBubble({ message, onDelete }: Props) {
           <span className="ml-2 text-xs opacity-70">đang gửi...</span>
         )}
         {isUser && message.transactionId != null && onDelete && (
-          <button
+          <DeleteIconButton
             onClick={() => onDelete(message.transactionId!)}
             title="Xóa giao dịch"
-            className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-sm text-gray-600 hover:bg-red-500 hover:text-white group-hover:flex"
-          >
-            ×
-          </button>
+            className="absolute -right-2 -top-2"
+          />
         )}
       </div>
     </div>

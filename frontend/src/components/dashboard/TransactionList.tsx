@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { formatShortDate, formatVND } from '../../lib/format'
+import DeleteIconButton from '../ui/DeleteIconButton'
 import type { Transaction } from '../../types'
 
 interface Props {
@@ -9,6 +10,14 @@ interface Props {
 }
 
 const PAGE_SIZE = 10
+
+function amountRowClass(amount: number): string {
+  if (amount > 10_000_000) return 'bg-red-200'
+  if (amount > 5_000_000) return 'bg-yellow-200'
+  if (amount > 1_000_000) return 'bg-blue-200'
+  if (amount > 500_000) return 'bg-blue-100'
+  return ''
+}
 
 export default function TransactionList({
   transactions,
@@ -44,7 +53,7 @@ export default function TransactionList({
         {visible.map((t) => (
           <li
             key={t.id}
-            className="group flex items-center gap-3 px-5 py-3"
+            className={`group flex items-center gap-3 px-5 py-3 ${amountRowClass(t.amount)}`}
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-gray-900">
@@ -58,13 +67,10 @@ export default function TransactionList({
               {formatVND(t.amount)}
             </p>
             {onDelete && currentUsername === t.username && (
-              <button
+              <DeleteIconButton
                 onClick={() => onDelete(t.id)}
                 title="Xóa giao dịch"
-                className="hidden h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-sm text-gray-600 hover:bg-red-500 hover:text-white group-hover:flex"
-              >
-                ×
-              </button>
+              />
             )}
           </li>
         ))}

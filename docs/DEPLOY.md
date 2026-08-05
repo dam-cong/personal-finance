@@ -114,6 +114,37 @@ cd backend && ../bin/pf-server
 
 ---
 
+## Cách 4: Deploy bổ sung (cập nhật code) — 1 bước
+
+Dùng khi server **đã chạy** rồi, chỉ cần đưa code mới lên.
+
+### Các bước
+
+1. **Upload code mới** lên server (ghi đè vào thư mục dự án). Dữ liệu cũ nằm
+   ở `backend/data/data.json` — **không xóa file này**.
+
+2. Chạy script deploy (1 lệnh duy nhất):
+
+   ```bash
+   cd <thư mục dự án trên server>
+   ./deploy.sh
+   ```
+
+### Script `deploy.sh` tự động làm:
+
+| Bước | Việc làm |
+|---|---|
+| 1 | Kiểm tra docker, docker compose, đúng thư mục dự án |
+| 2 | **Di trú dữ liệu cũ** nếu trước đó volume mount sai (chống mất data) |
+| 3 | **Backup** `backend/data/data.json` → `backups/data_<timestamp>.json` |
+| 4 | `docker compose up -d --build` |
+| 5 | Kiểm tra sức khỏe qua `GET /api/config`, báo lỗi nếu server không phản hồi sau 60s |
+
+Nếu lần deploy trước chưa từng chạy script này, lần đầu tiên cần có quyền
+execute: `chmod +x deploy.sh`.
+
+---
+
 ## Cấu trúc thư mục khi chạy
 
 ```
@@ -150,7 +181,11 @@ Binary chạy từ `/app/backend`, tìm frontend tại `../frontend/dist` và da
 3. **HTTPS** — nếu deploy public, dùng reverse proxy (Nginx/Caddy) phía trước để có SSL.
 4. **CORS** — hiện tại cho phép tất cả origin (`*`). Nếu dùng reverse proxy, có thể giữ nguyên.
 5. **Backup** — sao lưu `data/data.json` định kỳ.
-6. **Cập nhật** — khi có thay đổi code, chạy lại `docker compose up -d --build`.
+6. **Cập nhật** — khi có thay đổi code: upload code mới rồi chạy `./deploy.sh`
+   (xem Cách 4). Script tự backup data và build lại `docker compose up -d --build`.
+7. **Volume dữ liệu** — compose mount đúng `./backend/data:/app/backend/data`
+   (khớp `DATA_FILE=data/data.json` của app). Nếu trước đây mount sai
+   (`/app/data`), chạy `deploy.sh` để script tự di trú dữ liệu cũ.
 
 ---
 

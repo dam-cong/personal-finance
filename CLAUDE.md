@@ -73,3 +73,18 @@ Quy tắc làm việc cho Claude Code (và các AI agent khác) khi code trong d
 
 - Backend: `cd backend && go test ./... && go vet ./...`
 - Frontend: `cd frontend && npm run lint && npm run build`
+
+## 7. Git & xóa file — luôn xin phép trước
+
+- **Không tự ý chạy lệnh git** (commit, push, force-push, merge, reset,
+  checkout đổi nhánh, rm, clean...) khi người dùng chưa cho phép rõ ràng
+  trong chính yêu cầu đó. Đã được đồng ý một lần không có nghĩa là được phép
+  tự lặp lại cho lần/thay đổi khác — luôn hỏi lại trước mỗi thao tác git.
+  Đặc biệt cẩn trọng với các lệnh có thể **mất dữ liệu hoặc ghi đè lịch sử**
+  (`push --force`, `reset --hard`, `checkout`/`clean` khi có thay đổi chưa
+  commit).
+- **Xóa file** (bất kỳ file nào — kể cả file có vẻ trùng lặp, file build cũ,
+  file "chắc là không cần nữa"): phải **hỏi xin phép người dùng trước**, nêu
+  rõ sẽ xóa file nào và lý do. Không tự động xóa dù thấy hợp lý.
+- Lý do: tránh mất dữ liệu quan trọng (`data/data.json`, lịch sử git...) do
+  thao tác tự động ngoài ý muốn người dùng.

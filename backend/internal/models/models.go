@@ -1,9 +1,11 @@
 package models
 
 type Household struct {
-	ID        int    `json:"id"`
-	Name      string `json:"name"`
-	CreatedAt string `json:"created_at"`
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	CreatedAt     string `json:"created_at"`
+	DefaultBudget *int64 `json:"default_budget,omitempty"` // nil = dùng DEFAULT_BUDGET env
+	Slogan        string `json:"slogan,omitempty"`         // "" = chưa có khẩu hiệu
 }
 
 // Budget là hạn mức chi tiêu tháng (YYYY-MM) của một nhà.
