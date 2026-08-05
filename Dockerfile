@@ -19,7 +19,6 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /app/backend
 COPY --from=backend-builder /app/bin/pf-server pf-server
 COPY --from=backend-builder /app/frontend/dist ../frontend/dist
-COPY backend/data ./data
 COPY backend/.env.example .env
 EXPOSE 8080
 CMD ["./pf-server"]

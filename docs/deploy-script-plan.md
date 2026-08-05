@@ -9,6 +9,18 @@ dòng `APP_NAME` trong `docker-compose.yml` bị đổi thành `Gia đình Trang
 Hiến` (không phải do tôi sửa, có thể do thao tác khác trên máy) — nhất quán
 với `HOUSEHOLD_NAME`, không ảnh hưởng deploy.
 
+## Sửa sau khi deploy thử lần đầu
+
+- **Lỗi build `COPY backend/data ./data`** trên server: thư mục `backend/data`
+  bị `.gitignore` nên không có trong build context khi upload thủ công.
+  Đã **bỏ dòng `COPY backend/data ./data`** trong `Dockerfile` — app tự tạo
+  `backend/data/data.json` khi khởi động lần đầu (`store.load()` + `saveLocked()`
+  có `os.MkdirAll`), và compose mount volume `./backend/data` vào
+  `/app/backend/data` nên dữ liệu vẫn persist trên host.
+- Verify: không build local được (Docker daemon máy dev không chạy); server đã
+  build thành công tới bước 19/23, bước lỗi duy nhất là COPY bị bỏ — các bước
+  còn lại không đổi.
+
 ## Context
 
 - Dự án đã được deploy trước đó lên server Linux bằng Docker (Docker Compose
