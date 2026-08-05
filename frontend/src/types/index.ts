@@ -2,6 +2,8 @@ export interface Household {
   id: number
   name: string
   created_at: string
+  default_budget?: number | null
+  slogan?: string
 }
 
 export interface User {

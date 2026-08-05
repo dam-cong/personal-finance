@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import PeriodSelector from '../components/dashboard/PeriodSelector'
 import SummaryCards from '../components/dashboard/SummaryCards'
 import SpendingChart from '../components/dashboard/SpendingChart'
+import WeekdaySpendingChart from '../components/dashboard/WeekdaySpendingChart'
 import TransactionList from '../components/dashboard/TransactionList'
 import BudgetCard from '../components/dashboard/BudgetCard'
 import Modal from '../components/ui/Modal'
@@ -62,6 +63,19 @@ export default function DashboardPage() {
   const buckets = period === 'month' ? data?.daily ?? [] : data?.monthly ?? []
   const memberCount = data?.members?.length ?? 0
 
+  const rangeStart =
+    period === 'month'
+      ? new Date(year, month - 1, 1)
+      : period === 'quarter'
+        ? new Date(year, (quarter - 1) * 3, 1)
+        : new Date(year, 0, 1)
+  const rangeEnd =
+    period === 'month'
+      ? new Date(year, month, 0)
+      : period === 'quarter'
+        ? new Date(year, quarter * 3, 0)
+        : new Date(year, 11, 31)
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-3xl space-y-4 p-4">
@@ -75,14 +89,6 @@ export default function DashboardPage() {
           quarter={quarter}
           onQuarterChange={setQuarter}
         />
-
-        {data?.household && (
-          <div className="rounded-xl bg-blue-50 px-4 py-2.5 text-sm text-blue-800">
-            Dashboard chung của nhà <b>{data.household}</b>
-            {memberCount > 0 && ` — ${memberCount} thành viên`}. Chỉ chủ giao
-            dịch mới xóa được.
-          </div>
-        )}
 
         {period === 'month' && (
           <BudgetCard
@@ -101,7 +107,21 @@ export default function DashboardPage() {
         ) : (
           <>
             <SummaryCards total={data?.total ?? 0} count={data?.count ?? 0} />
+            <WeekdaySpendingChart
+              transactions={data?.transactions ?? []}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+            />
             <SpendingChart period={period} buckets={buckets} />
+
+            {data?.household && (
+              <div className="rounded-xl bg-blue-50 px-4 py-2.5 text-sm text-blue-800">
+                Dashboard chung của nhà <b>{data.household}</b>
+                {memberCount > 0 && ` — ${memberCount} thành viên`}. Chỉ chủ
+                giao dịch mới xóa được.
+              </div>
+            )}
+
             <TransactionList
               key={`${period}-${year}-${month}-${quarter}`}
               transactions={data?.transactions ?? []}

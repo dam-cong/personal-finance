@@ -1,5 +1,37 @@
 import type { Period } from '../../types'
 
+function ChevronLeftIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M15 6l-6 6 6 6" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  )
+}
+
 interface Props {
   period: Period
   onPeriodChange: (p: Period) => void
@@ -78,29 +110,31 @@ export default function PeriodSelector({
       <div className="flex items-center gap-3">
         <button
           onClick={prev}
+          aria-label="Kỳ trước"
           className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
         >
-          ◀
+          <ChevronLeftIcon className="h-5 w-5" />
         </button>
         <span className="text-sm font-semibold text-gray-900">
           {label()}
         </span>
         <button
           onClick={next}
+          aria-label="Kỳ sau"
           className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
         >
-          ▶
+          <ChevronRightIcon className="h-5 w-5" />
         </button>
       </div>
-      <div className="flex gap-1 rounded-lg bg-gray-200 p-1">
+      <div className="flex gap-1 rounded-full bg-gray-100 p-1">
         {PERIODS.map((p) => (
           <button
             key={p.value}
             onClick={() => onPeriodChange(p.value)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+            className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
               period === p.value
                 ? 'bg-white text-blue-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-500 hover:text-gray-800'
             }`}
           >
             {p.label}

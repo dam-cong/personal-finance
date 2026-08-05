@@ -29,6 +29,10 @@ func RegisterRoutes(r *gin.Engine, s *store.Store, cfg *config.Config) {
 	protected.PUT("/budgets", budget.Set)
 	protected.DELETE("/budgets", budget.Delete)
 
+	household := &HouseholdHandler{Store: s, Config: cfg}
+	protected.GET("/household", household.Get)
+	protected.PUT("/household", household.Update)
+
 	dash := &DashboardHandler{Store: s, Config: cfg}
 	protected.GET("/dashboard/month", dash.Month)
 	protected.GET("/dashboard/quarter", dash.Quarter)

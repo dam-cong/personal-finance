@@ -40,6 +40,10 @@ func (h *DashboardHandler) Month(c *gin.Context) {
 		return
 	}
 	monthKey := fmt.Sprintf("%04d-%02d", year, month)
+	effectiveDefault := h.Config.DefaultBudget
+	if hh, err := h.Store.FindHousehold(householdID); err == nil && hh.DefaultBudget != nil {
+		effectiveDefault = *hh.DefaultBudget
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"period":       "month",
 		"year":         year,
@@ -50,7 +54,7 @@ func (h *DashboardHandler) Month(c *gin.Context) {
 		"transactions": st.Transactions,
 		"household":    householdName,
 		"members":      members,
-		"budget":       budgetBlock(h.Store, householdID, monthKey, st.Total, h.Config.DefaultBudget),
+		"budget":       budgetBlock(h.Store, householdID, monthKey, st.Total, effectiveDefault),
 	})
 }
 

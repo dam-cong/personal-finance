@@ -159,6 +159,26 @@ func (s *Store) FindHousehold(id int) (*models.Household, error) {
 	return nil, fmt.Errorf("household %d not found", id)
 }
 
+// UpdateHousehold cập nhật tên, hạn mức mặc định override, và khẩu hiệu của
+// một nhà — mọi thành viên trong nhà đều có thể gọi (không có owner/role).
+func (s *Store) UpdateHousehold(id int, name string, defaultBudget *int64, slogan string) (*models.Household, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.data.Households {
+		if s.data.Households[i].ID == id {
+			s.data.Households[i].Name = name
+			s.data.Households[i].DefaultBudget = defaultBudget
+			s.data.Households[i].Slogan = slogan
+			if err := s.saveLocked(); err != nil {
+				return nil, err
+			}
+			hh := s.data.Households[i]
+			return &hh, nil
+		}
+	}
+	return nil, fmt.Errorf("household %d not found", id)
+}
+
 func (s *Store) ListUsersInHousehold(householdID int) []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

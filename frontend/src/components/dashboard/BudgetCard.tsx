@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { formatVND } from '../../lib/format'
+import BudgetGauge from './BudgetGauge'
+import Modal from '../ui/Modal'
 import type { BudgetInfo } from '../../types'
 
 interface Props {
@@ -10,16 +12,18 @@ interface Props {
   onDelete: () => Promise<void>
 }
 
-function barClass(status: string): string {
-  if (status === 'over') return 'bg-red-500'
-  if (status === 'near') return 'bg-yellow-400'
-  return 'bg-green-500'
-}
-
-function statusText(b: BudgetInfo): string {
+function statusText(b: BudgetInfo) {
   if (b.status === 'over')
-    return `Đã vượt hạn mức ${formatVND(-b.remaining)}`
-  return `Còn lại ${formatVND(b.remaining)}`
+    return (
+      <>
+        Đã vượt hạn mức <strong className="font-bold">{formatVND(-b.remaining)}</strong>
+      </>
+    )
+  return (
+    <>
+      Còn lại <strong className="font-bold">{formatVND(b.remaining)}</strong>
+    </>
+  )
 }
 
 export default function BudgetCard({
@@ -91,7 +95,7 @@ export default function BudgetCard({
           <button
             onClick={openModal}
             disabled={saving}
-            className="rounded-lg bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+            className="rounded-xl bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
           >
             {budget && !budget.default ? 'Chỉnh sửa' : 'Đặt hạn mức'}
           </button>
@@ -112,14 +116,9 @@ export default function BudgetCard({
               / {formatVND(budget.amount)} · {budget.percent}%
             </p>
           </div>
-          <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
-            <div
-              className={`h-full rounded-full ${barClass(budget.status)} transition-all`}
-              style={{ width: `${Math.min(budget.percent, 100)}%` }}
-            />
-          </div>
+          <BudgetGauge percent={budget.percent} status={budget.status} />
           <p
-            className={`mt-2 text-sm font-medium ${
+            className={`mt-2 text-center text-sm font-medium ${
               budget.status === 'over' ? 'text-red-600' : 'text-gray-600'
             }`}
           >
@@ -128,58 +127,36 @@ export default function BudgetCard({
         </>
       )}
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-xl bg-white p-6 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="mb-1 text-lg font-semibold text-gray-900">
-              Hạn mức tháng {monthLabel}
-            </h2>
-            <p className="mb-4 text-sm text-gray-500">
-              Tổng chi của cả nhà trong tháng {monthKey} không được vượt quá số
-              tiền này.
-            </p>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && save()}
-              placeholder="VD: 10000000 (10 triệu)"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              autoFocus
-            />
-            {input && /^\d+$/.test(input.replace(/[^\d]/g, '')) && (
-              <p className="mt-2 text-sm text-gray-500">
-                {formatVND(Number(input.replace(/[^\d]/g, '')))}
-              </p>
-            )}
-            {error && (
-              <p className="mt-2 text-sm text-red-600">{error}</p>
-            )}
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setOpen(false)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={save}
-                disabled={saving}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-              >
-                {saving ? 'Đang lưu...' : 'Lưu'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={open}
+        title={`Hạn mức tháng ${monthLabel}`}
+        onConfirm={save}
+        onCancel={() => setOpen(false)}
+        confirmLabel={saving ? 'Đang lưu...' : 'Lưu'}
+        confirmVariant="primary"
+        confirmDisabled={saving}
+      >
+        <p className="mb-4 text-sm text-gray-500">
+          Tổng chi của cả nhà trong tháng {monthKey} không được vượt quá số
+          tiền này.
+        </p>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && save()}
+          placeholder="VD: 10000000 (10 triệu)"
+          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          autoFocus
+        />
+        {input && /^\d+$/.test(input.replace(/[^\d]/g, '')) && (
+          <p className="mt-2 text-sm text-gray-500">
+            {formatVND(Number(input.replace(/[^\d]/g, '')))}
+          </p>
+        )}
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      </Modal>
     </div>
   )
 }
