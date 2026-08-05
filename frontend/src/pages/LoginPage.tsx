@@ -90,7 +90,13 @@ export default function LoginPage() {
         mode === 'login' ? '/auth/login' : '/auth/register',
         { username, password },
       )
-      setAuth(data.token, data.username, data.household_name)
+      setAuth(
+        data.token,
+        data.username,
+        data.household_name,
+        data.display_name,
+        data.avatar_url,
+      )
       navigate('/', { replace: true })
     } catch (err) {
       setError(axiosErrorMessage(err, mode))

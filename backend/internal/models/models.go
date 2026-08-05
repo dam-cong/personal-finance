@@ -18,11 +18,13 @@ type Budget struct {
 }
 
 type User struct {
-	ID           int    `json:"id"`
-	Username     string `json:"username"`
-	PasswordHash string `json:"password_hash"`
-	HouseholdID  int    `json:"household_id"`
-	CreatedAt    string `json:"created_at"`
+	ID             int    `json:"id"`
+	Username       string `json:"username"`
+	PasswordHash   string `json:"password_hash"`
+	HouseholdID    int    `json:"household_id"`
+	CreatedAt      string `json:"created_at"`
+	DisplayName    string `json:"display_name,omitempty"`    // "" = chưa đặt, FE fallback về username
+	AvatarFilename string `json:"avatar_filename,omitempty"` // tên file trong data/avatars/, "" = chưa có
 }
 
 type Transaction struct {

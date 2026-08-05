@@ -11,6 +11,8 @@ export interface User {
   username: string
   household_id: number
   created_at: string
+  display_name?: string
+  avatar_url?: string
 }
 
 export interface Transaction {
@@ -26,6 +28,8 @@ export interface LoginResponse {
   username: string
   household_id: number
   household_name: string
+  display_name?: string
+  avatar_url?: string
 }
 
 export interface AppConfig {

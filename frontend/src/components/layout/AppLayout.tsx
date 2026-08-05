@@ -5,6 +5,7 @@ import { useApp } from '../../stores/app'
 import { useState } from 'react'
 import { fetchHousehold } from '../../api/household'
 import HouseholdInfoModal from './HouseholdInfoModal'
+import ProfileModal from './ProfileModal'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-xl px-3 py-2 text-sm font-medium ${
@@ -14,10 +15,15 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 export default function AppLayout() {
   const username = useAuth((s) => s.username)
   const householdName = useAuth((s) => s.householdName)
+  const displayName = useAuth((s) => s.displayName)
+  const avatarUrl = useAuth((s) => s.avatarUrl)
   const logout = useAuth((s) => s.logout)
   const appName = useApp((s) => s.appName)
   const [menuOpen, setMenuOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const nameLabel = displayName || username || ''
+  const avatarInitial = nameLabel.charAt(0).toUpperCase()
   const { data: household } = useQuery({
     queryKey: ['household'],
     queryFn: fetchHousehold,
@@ -42,7 +48,7 @@ export default function AppLayout() {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-3 mt-1">
+        <div className="relative mt-1 flex w-full items-center justify-center">
           <nav className="flex items-center gap-1">
             <NavLink to="/chat" className={navLinkClass}>
               Chat
@@ -51,15 +57,35 @@ export default function AppLayout() {
               Dashboard
             </NavLink>
           </nav>
-          <div className="relative">
+
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="text-sm font-medium text-white hover:text-blue-100"
+              aria-label="Menu tài khoản"
+              className="block h-8 w-8 overflow-hidden rounded-full ring-2 ring-white/40 hover:ring-white/70"
             >
-              {username} ▾
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center bg-white/20 text-sm font-semibold text-white">
+                  {avatarInitial}
+                </span>
+              )}
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-40 rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5">
+              <div className="absolute right-0 mt-2 w-44 rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5">
+                <p className="truncate px-4 py-2 text-sm font-medium text-gray-900">
+                  {nameLabel}
+                </p>
+                <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    setProfileOpen(true)
+                  }}
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Hồ sơ của tôi
+                </button>
                 <button
                   onClick={() => {
                     setMenuOpen(false)
@@ -88,6 +114,7 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <HouseholdInfoModal open={infoOpen} onClose={() => setInfoOpen(false)} />
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>
   )
 }

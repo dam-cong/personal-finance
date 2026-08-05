@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -35,6 +36,7 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 	handlers.RegisterRoutes(r, st, cfg)
+	serveAvatars(r, cfg)
 	serveFrontend(r)
 
 	log.Printf("server chạy trên :%s", cfg.Port)
@@ -79,6 +81,15 @@ func seedUsers(st *store.Store, cfg *config.Config) {
 		}
 		log.Printf("đã tạo user: %s", username)
 	}
+}
+
+func serveAvatars(r *gin.Engine, cfg *config.Config) {
+	avatarDir := filepath.Join(filepath.Dir(cfg.DataFile), "avatars")
+	if err := os.MkdirAll(avatarDir, 0o755); err != nil {
+		log.Printf("không tạo được thư mục avatar: %v", err)
+		return
+	}
+	r.Static("/avatars", avatarDir)
 }
 
 func serveFrontend(r *gin.Engine) {

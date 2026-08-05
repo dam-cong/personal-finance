@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"path/filepath"
+
 	"github.com/gin-gonic/gin"
 
 	"personal-finance/backend/internal/config"
@@ -32,6 +34,12 @@ func RegisterRoutes(r *gin.Engine, s *store.Store, cfg *config.Config) {
 	household := &HouseholdHandler{Store: s, Config: cfg}
 	protected.GET("/household", household.Get)
 	protected.PUT("/household", household.Update)
+
+	avatarDir := filepath.Join(filepath.Dir(cfg.DataFile), "avatars")
+	profile := &ProfileHandler{Store: s, AvatarDir: avatarDir}
+	protected.GET("/me", profile.Get)
+	protected.PUT("/me", profile.UpdateName)
+	protected.POST("/me/avatar", profile.UploadAvatar)
 
 	dash := &DashboardHandler{Store: s, Config: cfg}
 	protected.GET("/dashboard/month", dash.Month)

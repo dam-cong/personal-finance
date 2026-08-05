@@ -179,6 +179,43 @@ func (s *Store) UpdateHousehold(id int, name string, defaultBudget *int64, sloga
 	return nil, fmt.Errorf("household %d not found", id)
 }
 
+// UpdateUserDisplayName đổi tên hiển thị của user (dữ liệu riêng, không
+// dùng chung theo nhà).
+func (s *Store) UpdateUserDisplayName(username, displayName string) (*models.User, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.data.Users {
+		if s.data.Users[i].Username == username {
+			s.data.Users[i].DisplayName = displayName
+			if err := s.saveLocked(); err != nil {
+				return nil, err
+			}
+			u := s.data.Users[i]
+			return &u, nil
+		}
+	}
+	return nil, fmt.Errorf("user %q not found", username)
+}
+
+// UpdateUserAvatar ghi đè tên file avatar, trả về user CŨ (trước khi ghi đè)
+// và user MỚI để handler biết file cũ nào cần xóa trên đĩa.
+func (s *Store) UpdateUserAvatar(username, filename string) (old *models.User, updated *models.User, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.data.Users {
+		if s.data.Users[i].Username == username {
+			oldCopy := s.data.Users[i]
+			s.data.Users[i].AvatarFilename = filename
+			if err := s.saveLocked(); err != nil {
+				return nil, nil, err
+			}
+			newCopy := s.data.Users[i]
+			return &oldCopy, &newCopy, nil
+		}
+	}
+	return nil, nil, fmt.Errorf("user %q not found", username)
+}
+
 func (s *Store) ListUsersInHousehold(householdID int) []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
