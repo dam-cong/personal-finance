@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  pf-server:
+    build: .
+    container_name: pf-server
+    ports:
+      - "8888:8080"
+    environment:
+      - PORT=8080
+      - JWT_SECRET=change-me-in-production
+      - DATA_FILE=data/data.json
+      - SEED_USERS=hiendc:1998,trangdt:1999
+      - APP_NAME=Personal Finance Chat
+      - HOUSEHOLD_NAME=Gia đình Trang - Hiến
+      - DEFAULT_BUDGET=10000000
+    volumes:
+      - ./backend/data:/app/data
+    restart: unless-stopped

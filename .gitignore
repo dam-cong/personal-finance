@@ -1,0 +1,11 @@
+# Go
+backend/data/
+*.tmp
+bin/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Env
+.env

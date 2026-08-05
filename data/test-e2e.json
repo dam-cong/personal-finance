@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "hiendc",
+      "password_hash": "$2a$10$Ohbycr0Ln7VknG.wreQUhewkMDmr3S7HUEFBFZoHvLJTqcp0BNFCm",
+      "created_at": "2026-08-05T10:44:11+07:00"
+    },
+    {
+      "id": 2,
+      "username": "trangdt",
+      "password_hash": "$2a$10$hr5vCUnzdCaL0NJc0GcZmeCwMk4UUw.msTHvu2DiJ7UQaYW3Pp9Qi",
+      "created_at": "2026-08-05T10:44:11+07:00"
+    },
+    {
+      "id": 3,
+      "username": "trang2",
+      "password_hash": "$2a$10$4sebbD0JQrU7NdCw7VMdB.1i7nBnkQ5E6MO4FgTZswsBwNvsO.eVi",
+      "created_at": "2026-08-05T10:44:16+07:00"
+    }
+  ],
+  "transactions": [],
+  "next_user_id": 4,
+  "next_transaction_id": 2
+}

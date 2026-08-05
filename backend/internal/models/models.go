@@ -1,0 +1,32 @@
+package models
+
+type Household struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"created_at"`
+}
+
+// Budget là hạn mức chi tiêu tháng (YYYY-MM) của một nhà.
+type Budget struct {
+	ID           int    `json:"id"`
+	HouseholdID  int    `json:"household_id"`
+	Month        string `json:"month"`
+	Amount       int64  `json:"amount"`
+	CreatedAt    string `json:"created_at"`
+}
+
+type User struct {
+	ID           int    `json:"id"`
+	Username     string `json:"username"`
+	PasswordHash string `json:"password_hash"`
+	HouseholdID  int    `json:"household_id"`
+	CreatedAt    string `json:"created_at"`
+}
+
+type Transaction struct {
+	ID        int    `json:"id"`
+	Content   string `json:"content"`
+	Amount    int64  `json:"amount"`
+	CreatedAt string `json:"created_at"`
+	Username  string `json:"username"`
+}
