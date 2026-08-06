@@ -1,5 +1,7 @@
 import { formatVND } from '../../lib/format'
 import DeleteIconButton from '../ui/DeleteIconButton'
+import Avatar from '../ui/Avatar'
+import { useAuth } from '../../stores/auth'
 import type { ChatMessage } from '../../types'
 
 interface Props {
@@ -9,9 +11,22 @@ interface Props {
 
 export default function MessageBubble({ message, onDelete }: Props) {
   const isUser = message.role === 'user'
+  const displayName = useAuth((s) => s.displayName)
+  const username = useAuth((s) => s.username)
+  const avatarUrl = useAuth((s) => s.avatarUrl)
+  const nameLabel = displayName || username || '?'
 
   return (
-    <div className={`group flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`group flex items-end gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
+      {isUser ? (
+        <Avatar avatarUrl={avatarUrl ?? undefined} label={nameLabel} className="h-7 w-7" />
+      ) : (
+        <img
+          src="/favicon.png"
+          alt="Bot"
+          className="h-7 w-7 flex-shrink-0 rounded-full bg-white object-contain p-0.5 ring-1 ring-gray-200"
+        />
+      )}
       <div
         className={`relative max-w-[75%] rounded-2xl px-4 py-2 shadow-sm ${
           isUser

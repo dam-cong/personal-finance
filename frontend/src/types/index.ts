@@ -44,6 +44,17 @@ export interface CreateTransactionResponse {
   saved?: boolean
 }
 
+export interface FamilyMessage {
+  id: number
+  household_id: number
+  username: string
+  display_name?: string
+  avatar_url?: string
+  content: string
+  image_url?: string
+  created_at: string
+}
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'bot'

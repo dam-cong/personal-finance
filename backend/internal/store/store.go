@@ -16,10 +16,12 @@ type dataFile struct {
 	Users             []models.User         `json:"users"`
 	Transactions      []models.Transaction  `json:"transactions"`
 	Budgets           []models.Budget       `json:"budgets"`
+	Messages          []models.Message      `json:"messages"`
 	NextHouseholdID   int                   `json:"next_household_id"`
 	NextUserID        int                   `json:"next_user_id"`
 	NextTransactionID int                   `json:"next_transaction_id"`
 	NextBudgetID      int                   `json:"next_budget_id"`
+	NextMessageID     int                   `json:"next_message_id"`
 }
 
 type Store struct {
@@ -48,10 +50,12 @@ func (s *Store) load() error {
 				Users:             []models.User{},
 				Transactions:      []models.Transaction{},
 				Budgets:           []models.Budget{},
+				Messages:          []models.Message{},
 				NextHouseholdID:   1,
 				NextUserID:        1,
 				NextTransactionID: 1,
 				NextBudgetID:      1,
+				NextMessageID:     1,
 			}
 			return s.saveLocked()
 		}
@@ -89,6 +93,10 @@ func (s *Store) migrate(householdName string) error {
 	changed := false
 	if s.data.NextBudgetID < 1 {
 		s.data.NextBudgetID = 1
+		changed = true
+	}
+	if s.data.NextMessageID < 1 {
+		s.data.NextMessageID = 1
 		changed = true
 	}
 	for i := range s.data.Users {
@@ -380,4 +388,89 @@ func (s *Store) DeleteBudget(householdID int, month string) error {
 		}
 	}
 	return nil
+}
+
+// CreateMessage lưu 1 tin nhắn mới vào phòng chat chung của nhà.
+func (s *Store) CreateMessage(m *models.Message) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	m.ID = s.data.NextMessageID
+	s.data.NextMessageID++
+	if m.CreatedAt == "" {
+		m.CreatedAt = time.Now().Format(time.RFC3339)
+	}
+	s.data.Messages = append(s.data.Messages, *m)
+	return s.saveLocked()
+}
+
+// ListMessagesByHousehold trả về tin nhắn của 1 nhà, thứ tự cũ → mới (khớp
+// cách ChatWindow hiển thị tin nhắn từ trên xuống dưới).
+func (s *Store) ListMessagesByHousehold(householdID int) ([]models.Message, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var filtered []models.Message
+	for i := range s.data.Messages {
+		if s.data.Messages[i].HouseholdID == householdID {
+			filtered = append(filtered, s.data.Messages[i])
+		}
+	}
+	return filtered, nil
+}
+
+// LatestMessageID trả về ID lớn nhất trong các tin nhắn của 1 nhà, 0 nếu
+// chưa có tin nào.
+func (s *Store) LatestMessageID(householdID int) int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	latest := 0
+	for i := range s.data.Messages {
+		if s.data.Messages[i].HouseholdID == householdID && s.data.Messages[i].ID > latest {
+			latest = s.data.Messages[i].ID
+		}
+	}
+	return latest
+}
+
+// MarkMessagesRead cập nhật con trỏ "đã đọc đến tin nào" của user — chỉ ghi
+// đè khi lastMessageID lớn hơn giá trị hiện tại, tránh set lùi.
+func (s *Store) MarkMessagesRead(username string, lastMessageID int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.data.Users {
+		if s.data.Users[i].Username == username {
+			if lastMessageID > s.data.Users[i].LastReadMessageID {
+				s.data.Users[i].LastReadMessageID = lastMessageID
+				return s.saveLocked()
+			}
+			return nil
+		}
+	}
+	return fmt.Errorf("user %q not found", username)
+}
+
+// CountUnreadMessages đếm số tin nhắn trong nhà mà user chưa đọc — không
+// tính tin do chính user đó gửi.
+func (s *Store) CountUnreadMessages(householdID int, username string) (int, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var lastRead int
+	found := false
+	for i := range s.data.Users {
+		if s.data.Users[i].Username == username {
+			lastRead = s.data.Users[i].LastReadMessageID
+			found = true
+			break
+		}
+	}
+	if !found {
+		return 0, fmt.Errorf("user %q not found", username)
+	}
+	count := 0
+	for i := range s.data.Messages {
+		m := &s.data.Messages[i]
+		if m.HouseholdID == householdID && m.ID > lastRead && m.Username != username {
+			count++
+		}
+	}
+	return count, nil
 }

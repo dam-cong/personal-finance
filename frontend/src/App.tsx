@@ -7,6 +7,7 @@ import { useApp } from './stores/app'
 
 const ChatPage = lazy(() => import('./pages/ChatPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const FamilyChatPage = lazy(() => import('./pages/FamilyChatPage'))
 
 function RequireAuth() {
   const token = useAuth((s) => s.token)
@@ -35,6 +36,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/chat" replace />} />
           <Route path="/chat" element={<ChatPage />} />
+          <Route path="/family-chat" element={<FamilyChatPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
         </Route>
       </Route>

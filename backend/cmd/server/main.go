@@ -36,7 +36,8 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 	handlers.RegisterRoutes(r, st, cfg)
-	serveAvatars(r, cfg)
+	serveUploadDir(r, cfg, "avatars", "/avatars")
+	serveUploadDir(r, cfg, "chat-images", "/chat-images")
 	serveFrontend(r)
 
 	log.Printf("server chạy trên :%s", cfg.Port)
@@ -83,13 +84,15 @@ func seedUsers(st *store.Store, cfg *config.Config) {
 	}
 }
 
-func serveAvatars(r *gin.Engine, cfg *config.Config) {
-	avatarDir := filepath.Join(filepath.Dir(cfg.DataFile), "avatars")
-	if err := os.MkdirAll(avatarDir, 0o755); err != nil {
-		log.Printf("không tạo được thư mục avatar: %v", err)
+// serveUploadDir đảm bảo thư mục upload (avatars, chat-images...) tồn tại
+// và serve tĩnh tại urlPrefix.
+func serveUploadDir(r *gin.Engine, cfg *config.Config, subdir, urlPrefix string) {
+	dir := filepath.Join(filepath.Dir(cfg.DataFile), subdir)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		log.Printf("không tạo được thư mục %s: %v", subdir, err)
 		return
 	}
-	r.Static("/avatars", avatarDir)
+	r.Static(urlPrefix, dir)
 }
 
 func serveFrontend(r *gin.Engine) {

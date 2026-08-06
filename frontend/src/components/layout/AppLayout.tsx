@@ -4,11 +4,12 @@ import { useAuth } from '../../stores/auth'
 import { useApp } from '../../stores/app'
 import { useState } from 'react'
 import { fetchHousehold } from '../../api/household'
+import { fetchUnreadCount } from '../../api/messages'
 import HouseholdInfoModal from './HouseholdInfoModal'
 import ProfileModal from './ProfileModal'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-xl px-3 py-2 text-sm font-medium ${
+  `relative rounded-xl px-3 py-2 text-sm font-medium ${
     isActive ? 'bg-blue-900 text-white' : 'text-blue-100 hover:bg-white/10'
   }`
 
@@ -28,6 +29,11 @@ export default function AppLayout() {
     queryKey: ['household'],
     queryFn: fetchHousehold,
     staleTime: Infinity,
+  })
+  const { data: unreadCount } = useQuery({
+    queryKey: ['unread-messages'],
+    queryFn: fetchUnreadCount,
+    refetchInterval: 5000,
   })
 
   return (
@@ -52,6 +58,12 @@ export default function AppLayout() {
           <nav className="flex items-center gap-1">
             <NavLink to="/chat" className={navLinkClass}>
               Chat
+            </NavLink>
+            <NavLink to="/family-chat" className={navLinkClass}>
+              Trò chuyện
+              {(unreadCount ?? 0) > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-blue-600" />
+              )}
             </NavLink>
             <NavLink to="/dashboard" className={navLinkClass}>
               Dashboard

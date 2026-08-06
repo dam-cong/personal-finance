@@ -41,6 +41,14 @@ func RegisterRoutes(r *gin.Engine, s *store.Store, cfg *config.Config) {
 	protected.PUT("/me", profile.UpdateName)
 	protected.POST("/me/avatar", profile.UploadAvatar)
 
+	chatImageDir := filepath.Join(filepath.Dir(cfg.DataFile), "chat-images")
+	msg := &MessageHandler{Store: s, ImageDir: chatImageDir}
+	protected.GET("/messages", msg.List)
+	protected.POST("/messages", msg.Create)
+	protected.GET("/messages/unread-count", msg.UnreadCount)
+	protected.POST("/messages/read", msg.MarkRead)
+	protected.POST("/messages/image", msg.UploadImage)
+
 	dash := &DashboardHandler{Store: s, Config: cfg}
 	protected.GET("/dashboard/month", dash.Month)
 	protected.GET("/dashboard/quarter", dash.Quarter)
