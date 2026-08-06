@@ -100,10 +100,25 @@ func serveFrontend(r *gin.Engine) {
 	}
 	r.Static("/assets", dist+"/assets")
 	r.NoRoute(func(c *gin.Context) {
-		if strings.HasPrefix(c.Request.URL.Path, "/api") {
+		reqPath := c.Request.URL.Path
+		if strings.HasPrefix(reqPath, "/api") {
 			c.JSON(404, gin.H{"error": "Not found"})
 			return
 		}
+		// File tĩnh ở root dist/ (favicon.png, favicon.svg...) do Vite copy
+		// thẳng từ frontend/public/, không nằm trong /assets — phục vụ trực
+		// tiếp nếu tồn tại, còn lại mới fallback về index.html cho SPA routing.
+		if !strings.Contains(reqPath, "..") {
+			if file := filepath.Join(dist, reqPath); isFile(file) {
+				c.File(file)
+				return
+			}
+		}
 		c.File(dist + "/index.html")
 	})
+}
+
+func isFile(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
 }
