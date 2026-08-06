@@ -8,6 +8,7 @@ import {
   deleteTransaction,
   fetchTransactions,
 } from '../api/transactions'
+import { fetchHousehold } from '../api/household'
 import type { ChatMessage, Transaction } from '../types'
 
 const GREETING: ChatMessage = {
@@ -41,6 +42,11 @@ export default function ChatPage() {
   const { data: transactions } = useQuery({
     queryKey: ['transactions'],
     queryFn: fetchTransactions,
+  })
+  const { data: household } = useQuery({
+    queryKey: ['household'],
+    queryFn: fetchHousehold,
+    staleTime: Infinity,
   })
 
   useEffect(() => {
@@ -143,6 +149,7 @@ export default function ChatPage() {
         onSend={handleSend}
         onDelete={setPendingDelete}
         sending={sending}
+        backgroundImageUrl={household?.image_url}
       />
       <Modal
         open={pendingDelete != null}

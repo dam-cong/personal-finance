@@ -8,6 +8,7 @@ import {
   sendImageMessage,
   sendMessage,
 } from '../api/messages'
+import { fetchHousehold } from '../api/household'
 import { useAuth } from '../stores/auth'
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -24,6 +25,11 @@ export default function FamilyChatPage() {
     queryKey: ['messages'],
     queryFn: fetchMessages,
     refetchInterval: 3000,
+  })
+  const { data: household } = useQuery({
+    queryKey: ['household'],
+    queryFn: fetchHousehold,
+    staleTime: Infinity,
   })
 
   useEffect(() => {
@@ -75,6 +81,7 @@ export default function FamilyChatPage() {
           onSend={handleSend}
           onSendImage={handleSendImage}
           sending={sending}
+          backgroundImageUrl={household?.image_url}
         />
       </div>
     </div>

@@ -8,9 +8,16 @@ interface Props {
   onSend: (text: string) => void
   onDelete?: (transactionId: number) => void
   sending: boolean
+  backgroundImageUrl?: string
 }
 
-export default function ChatWindow({ messages, onSend, onDelete, sending }: Props) {
+export default function ChatWindow({
+  messages,
+  onSend,
+  onDelete,
+  sending,
+  backgroundImageUrl,
+}: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const firstScroll = useRef(true)
 
@@ -24,12 +31,20 @@ export default function ChatWindow({ messages, onSend, onDelete, sending }: Prop
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-        <div className="mx-auto max-w-3xl space-y-3">
-          {messages.map((m) => (
-            <MessageBubble key={m.id} message={m} onDelete={onDelete} />
-          ))}
-          <div ref={bottomRef} />
+      <div className="relative flex-1 overflow-y-auto">
+        {backgroundImageUrl && (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+          />
+        )}
+        <div className="relative space-y-3 px-4 py-4">
+          <div className="mx-auto max-w-3xl space-y-3">
+            {messages.map((m) => (
+              <MessageBubble key={m.id} message={m} onDelete={onDelete} />
+            ))}
+            <div ref={bottomRef} />
+          </div>
         </div>
       </div>
       <ChatInput onSend={onSend} disabled={sending} />

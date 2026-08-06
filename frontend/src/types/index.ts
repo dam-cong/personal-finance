@@ -4,6 +4,7 @@ export interface Household {
   created_at: string
   default_budget?: number | null
   slogan?: string
+  image_url?: string
 }
 
 export interface User {

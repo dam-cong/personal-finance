@@ -31,11 +31,13 @@ func RegisterRoutes(r *gin.Engine, s *store.Store, cfg *config.Config) {
 	protected.PUT("/budgets", budget.Set)
 	protected.DELETE("/budgets", budget.Delete)
 
-	household := &HouseholdHandler{Store: s, Config: cfg}
+	avatarDir := filepath.Join(filepath.Dir(cfg.DataFile), "avatars")
+
+	household := &HouseholdHandler{Store: s, Config: cfg, AvatarDir: avatarDir}
 	protected.GET("/household", household.Get)
 	protected.PUT("/household", household.Update)
+	protected.POST("/household/image", household.UploadImage)
 
-	avatarDir := filepath.Join(filepath.Dir(cfg.DataFile), "avatars")
 	profile := &ProfileHandler{Store: s, AvatarDir: avatarDir}
 	protected.GET("/me", profile.Get)
 	protected.PUT("/me", profile.UpdateName)

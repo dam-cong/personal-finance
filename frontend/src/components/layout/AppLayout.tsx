@@ -40,9 +40,18 @@ export default function AppLayout() {
     <div className="flex h-screen flex-col bg-gray-50">
       <header className="sticky top-0 z-10 flex flex-col items-center rounded-b-3xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-3 py-2 text-white shadow-sm">
         <div className="min-w-0 text-center">
-          <h1 className="truncate text-base font-bold text-white">
-            {appName}
-          </h1>
+          <div className="flex items-center justify-center gap-2">
+            {household?.image_url && (
+              <img
+                src={household.image_url}
+                alt="Ảnh nhà"
+                className="h-7 w-7 flex-shrink-0 rounded-full object-cover ring-2 ring-white/40"
+              />
+            )}
+            <h1 className="truncate text-base font-bold text-white">
+              {appName}
+            </h1>
+          </div>
           {householdName && (
             <p className="truncate text-xs text-blue-100">
               Nhà {householdName}

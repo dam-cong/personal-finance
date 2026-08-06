@@ -187,6 +187,24 @@ func (s *Store) UpdateHousehold(id int, name string, defaultBudget *int64, sloga
 	return nil, fmt.Errorf("household %d not found", id)
 }
 
+// UpdateHouseholdImage cập nhật ảnh đại diện của nhà. Không xóa ảnh cũ trên
+// đĩa khi đổi ảnh mới (chấp nhận đơn giản, khác UpdateUserAvatar).
+func (s *Store) UpdateHouseholdImage(id int, filename string) (*models.Household, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.data.Households {
+		if s.data.Households[i].ID == id {
+			s.data.Households[i].ImageFilename = filename
+			if err := s.saveLocked(); err != nil {
+				return nil, err
+			}
+			hh := s.data.Households[i]
+			return &hh, nil
+		}
+	}
+	return nil, fmt.Errorf("household %d not found", id)
+}
+
 // UpdateUserDisplayName đổi tên hiển thị của user (dữ liệu riêng, không
 // dùng chung theo nhà).
 func (s *Store) UpdateUserDisplayName(username, displayName string) (*models.User, error) {

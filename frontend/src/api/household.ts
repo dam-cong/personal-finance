@@ -18,3 +18,14 @@ export async function updateHousehold(
   })
   return data.household
 }
+
+export async function uploadHouseholdImage(file: File): Promise<Household> {
+  const form = new FormData()
+  form.append('image', file)
+  const { data } = await api.post<{ household: Household }>(
+    '/household/image',
+    form,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  )
+  return data.household
+}
