@@ -2,15 +2,20 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../stores/auth'
 import { useApp } from '../../stores/app'
-import { useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { fetchHousehold } from '../../api/household'
 import { fetchUnreadCount } from '../../api/messages'
 import HouseholdInfoModal from './HouseholdInfoModal'
 import ProfileModal from './ProfileModal'
+import BottomNav from './BottomNav'
+import AccountSheet from './AccountSheet'
+import BottomSheet from '../ui/BottomSheet'
+import { useKeyboardOpen } from '../../hooks/useKeyboardOpen'
+import { DEFAULT_PRIMARY_COLOR, hexToShades } from '../../lib/theme'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `relative rounded-xl px-3 py-2 text-sm font-medium ${
-    isActive ? 'bg-blue-900 text-white' : 'text-blue-100 hover:bg-white/10'
+    isActive ? 'bg-[var(--primary-900)] text-white' : 'text-[var(--primary-100)] hover:bg-white/10'
   }`
 
 export default function AppLayout() {
@@ -23,6 +28,8 @@ export default function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [accountSheetOpen, setAccountSheetOpen] = useState(false)
+  const keyboardOpen = useKeyboardOpen()
   const nameLabel = displayName || username || ''
   const avatarInitial = nameLabel.charAt(0).toUpperCase()
   const { data: household } = useQuery({
@@ -35,12 +42,18 @@ export default function AppLayout() {
     queryFn: fetchUnreadCount,
     refetchInterval: 5000,
   })
+  const themeStyle = useMemo(() => {
+    const shades = hexToShades(household?.primary_color || DEFAULT_PRIMARY_COLOR)
+    return Object.fromEntries(
+      Object.entries(shades).map(([key, value]) => [`--primary-${key}`, value]),
+    ) as CSSProperties
+  }, [household?.primary_color])
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50">
-      <header className="sticky top-0 z-10 flex flex-col items-center rounded-b-3xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-3 py-2 text-white shadow-sm">
-        <div className="min-w-0 text-center">
-          <div className="flex items-center justify-center gap-2">
+    <div className="flex h-screen flex-col bg-gray-50" style={themeStyle}>
+      <header className="sticky top-0 z-10 flex flex-col items-center rounded-b-3xl bg-gradient-to-r from-[var(--primary-500)] via-[var(--primary-600)] to-[var(--primary-700)] px-3 py-2 text-white shadow-sm">
+        <div className="flex w-full min-w-0 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
             {household?.image_url && (
               <img
                 src={household.image_url}
@@ -52,18 +65,20 @@ export default function AppLayout() {
               {appName}
             </h1>
           </div>
-          {householdName && (
-            <p className="truncate text-xs text-blue-100">
-              Nhà {householdName}
-            </p>
-          )}
-          {household?.slogan && (
-            <p className="mt-1 inline-block rounded-full bg-white/15 px-3 py-0.5 text-xs font-semibold italic text-white">
-              "{household.slogan}"
-            </p>
-          )}
+          <div className="flex min-w-0 flex-col items-end">
+            {householdName && (
+              <p className="max-w-full truncate text-xs text-[var(--primary-100)]">
+                Nhà {householdName}
+              </p>
+            )}
+            {household?.slogan && (
+              <p className="mt-0.5 max-w-full truncate rounded-full bg-white/15 px-3 py-0.5 text-xs font-semibold italic text-white">
+                "{household.slogan}"
+              </p>
+            )}
+          </div>
         </div>
-        <div className="relative mt-1 flex w-full items-center justify-center">
+        <div className="relative mt-1 hidden w-full items-center justify-center md:flex">
           <nav className="flex items-center gap-1">
             <NavLink to="/chat" className={navLinkClass}>
               Chat
@@ -71,7 +86,7 @@ export default function AppLayout() {
             <NavLink to="/family-chat" className={navLinkClass}>
               Trò chuyện
               {(unreadCount ?? 0) > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-blue-600" />
+                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[var(--primary-600)]" />
               )}
             </NavLink>
             <NavLink to="/dashboard" className={navLinkClass}>
@@ -131,9 +146,38 @@ export default function AppLayout() {
           </div>
         </div>
       </header>
-      <main className="min-h-0 flex-1 overflow-hidden">
+      <main
+        className={`min-h-0 flex-1 overflow-hidden md:pb-0 ${
+          keyboardOpen ? '' : 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
+        }`}
+      >
         <Outlet />
       </main>
+      {!keyboardOpen && (
+        <BottomNav
+          unreadCount={unreadCount ?? 0}
+          onOpenAccount={() => setAccountSheetOpen(true)}
+          accountOpen={accountSheetOpen}
+          onOpenInfo={() => setInfoOpen(true)}
+          infoOpen={infoOpen}
+          avatarUrl={avatarUrl}
+          nameLabel={nameLabel}
+        />
+      )}
+      <BottomSheet open={accountSheetOpen} onClose={() => setAccountSheetOpen(false)}>
+        <AccountSheet
+          nameLabel={nameLabel}
+          avatarUrl={avatarUrl}
+          onProfile={() => {
+            setAccountSheetOpen(false)
+            setProfileOpen(true)
+          }}
+          onLogout={() => {
+            setAccountSheetOpen(false)
+            logout()
+          }}
+        />
+      </BottomSheet>
       <HouseholdInfoModal open={infoOpen} onClose={() => setInfoOpen(false)} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>

@@ -9,6 +9,7 @@ interface Props {
   onDelete?: (transactionId: number) => void
   sending: boolean
   backgroundImageUrl?: string
+  autoFocusNonce?: number
 }
 
 export default function ChatWindow({
@@ -17,6 +18,7 @@ export default function ChatWindow({
   onDelete,
   sending,
   backgroundImageUrl,
+  autoFocusNonce,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const firstScroll = useRef(true)
@@ -47,7 +49,7 @@ export default function ChatWindow({
           </div>
         </div>
       </div>
-      <ChatInput onSend={onSend} disabled={sending} />
+      <ChatInput onSend={onSend} disabled={sending} autoFocusNonce={autoFocusNonce} />
     </div>
   )
 }

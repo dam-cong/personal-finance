@@ -14,7 +14,7 @@ export default function Avatar({ avatarUrl, label, className = 'h-8 w-8' }: Prop
     />
   ) : (
     <span
-      className={`flex flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white ${className}`}
+      className={`flex flex-shrink-0 items-center justify-center rounded-full bg-[var(--primary-600)] text-xs font-semibold text-white ${className}`}
     >
       {initial}
     </span>

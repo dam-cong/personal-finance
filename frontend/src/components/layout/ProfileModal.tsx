@@ -101,7 +101,7 @@ export default function ProfileModal({ open, onClose }: Props) {
               className="h-20 w-20 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--primary-600)] text-2xl font-bold text-white">
               {initial}
             </div>
           )}
@@ -133,7 +133,7 @@ export default function ProfileModal({ open, onClose }: Props) {
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder={username}
             maxLength={50}
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 focus:border-[var(--primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-100)]"
           />
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}

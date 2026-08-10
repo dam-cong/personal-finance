@@ -14,8 +14,8 @@ const PAGE_SIZE = 10
 function amountRowClass(amount: number): string {
   if (amount > 10_000_000) return 'bg-red-200'
   if (amount > 5_000_000) return 'bg-yellow-200'
-  if (amount > 1_000_000) return 'bg-blue-200'
-  if (amount > 500_000) return 'bg-blue-100'
+  if (amount > 1_000_000) return 'bg-[var(--primary-200)]'
+  if (amount > 500_000) return 'bg-[var(--primary-100)]'
   return ''
 }
 
@@ -78,7 +78,7 @@ export default function TransactionList({
       {visibleCount < sorted.length && (
         <button
           onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-          className="w-full border-t border-gray-100 py-2.5 text-center text-sm font-medium text-blue-600 hover:bg-gray-50"
+          className="w-full border-t border-gray-100 py-2.5 text-center text-sm font-medium text-[var(--primary-600)] hover:bg-gray-50"
         >
           Xem thêm ({sorted.length - visibleCount})
         </button>

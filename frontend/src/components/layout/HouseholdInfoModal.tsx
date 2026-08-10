@@ -8,6 +8,7 @@ import {
   uploadHouseholdImage,
 } from '../../api/household'
 import { useAuth } from '../../stores/auth'
+import { DEFAULT_PRIMARY_COLOR } from '../../lib/theme'
 
 interface Props {
   open: boolean
@@ -15,7 +16,9 @@ interface Props {
 }
 
 const fieldInputClass =
-  'w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100'
+  'w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 focus:border-[var(--primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-100)]'
+
+const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/
 
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024
 
@@ -29,6 +32,7 @@ export default function HouseholdInfoModal({ open, onClose }: Props) {
   const [name, setName] = useState('')
   const [budgetInput, setBudgetInput] = useState('')
   const [slogan, setSlogan] = useState('')
+  const [colorHex, setColorHex] = useState(DEFAULT_PRIMARY_COLOR)
   const [currentImageUrl, setCurrentImageUrl] = useState('')
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null)
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
@@ -46,6 +50,7 @@ export default function HouseholdInfoModal({ open, onClose }: Props) {
           hh.default_budget != null ? String(hh.default_budget) : '',
         )
         setSlogan(hh.slogan ?? '')
+        setColorHex(hh.primary_color || DEFAULT_PRIMARY_COLOR)
         setCurrentImageUrl(hh.image_url ?? '')
       })
       .catch(() => setError('Không tải được thông tin nhà'))
@@ -80,6 +85,10 @@ export default function HouseholdInfoModal({ open, onClose }: Props) {
       setError('Tên nhà không được để trống')
       return
     }
+    if (colorHex && !HEX_COLOR_PATTERN.test(colorHex)) {
+      setError('Mã màu không hợp lệ, dùng định dạng #RRGGBB')
+      return
+    }
     const amount = budgetInput.trim()
       ? Number(budgetInput.replace(/[^\d]/g, ''))
       : null
@@ -89,7 +98,7 @@ export default function HouseholdInfoModal({ open, onClose }: Props) {
       if (pendingImageFile) {
         await uploadHouseholdImage(pendingImageFile)
       }
-      const hh = await updateHousehold(name.trim(), amount, slogan.trim())
+      const hh = await updateHousehold(name.trim(), amount, slogan.trim(), colorHex)
       setHouseholdName(hh.name)
       await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       await queryClient.invalidateQueries({ queryKey: ['household'] })
@@ -174,6 +183,33 @@ export default function HouseholdInfoModal({ open, onClose }: Props) {
             placeholder="VD: Tiết kiệm hôm nay, an nhiên ngày mai!"
             className={fieldInputClass}
           />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Màu chủ đạo
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={colorHex}
+              onChange={(e) => setColorHex(e.target.value.toUpperCase())}
+              disabled={loading}
+              className="h-10 w-10 flex-shrink-0 cursor-pointer rounded-xl border border-gray-200 bg-gray-50 p-1"
+            />
+            <input
+              type="text"
+              value={colorHex}
+              onChange={(e) => setColorHex(e.target.value.toUpperCase())}
+              disabled={loading}
+              placeholder={DEFAULT_PRIMARY_COLOR}
+              maxLength={7}
+              className={`${fieldInputClass} flex-1 font-mono uppercase`}
+            />
+            <span
+              className="h-10 w-10 flex-shrink-0 rounded-full border border-gray-200 shadow-sm"
+              style={{ backgroundColor: HEX_COLOR_PATTERN.test(colorHex) ? colorHex : undefined }}
+            />
+          </div>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>

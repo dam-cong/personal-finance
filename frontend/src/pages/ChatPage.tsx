@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import ChatWindow from '../components/chat/ChatWindow'
@@ -39,6 +40,14 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<number | null>(null)
   const queryClient = useQueryClient()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const focusNonce = (location.state as { nonce?: number } | null)?.nonce
+
+  useEffect(() => {
+    if (!focusNonce) return
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [focusNonce, navigate, location.pathname])
   const { data: transactions } = useQuery({
     queryKey: ['transactions'],
     queryFn: fetchTransactions,
@@ -150,6 +159,7 @@ export default function ChatPage() {
         onDelete={setPendingDelete}
         sending={sending}
         backgroundImageUrl={household?.image_url}
+        autoFocusNonce={focusNonce}
       />
       <Modal
         open={pendingDelete != null}

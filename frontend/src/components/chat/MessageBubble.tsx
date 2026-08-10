@@ -30,7 +30,7 @@ export default function MessageBubble({ message, onDelete }: Props) {
       <div
         className={`relative max-w-[75%] rounded-2xl px-4 py-2 shadow-sm ${
           isUser
-            ? 'rounded-br-sm bg-blue-600 text-white'
+            ? 'rounded-br-sm bg-[var(--primary-600)] text-white'
             : 'rounded-bl-sm bg-white text-gray-900'
         }`}
       >
@@ -41,7 +41,7 @@ export default function MessageBubble({ message, onDelete }: Props) {
           {message.amount != null && (
             <span
               className={`text-xs font-semibold whitespace-nowrap ${
-                isUser ? 'text-blue-100' : 'text-gray-500'
+                isUser ? 'text-[var(--primary-100)]' : 'text-gray-500'
               }`}
             >
               {formatVND(message.amount)}

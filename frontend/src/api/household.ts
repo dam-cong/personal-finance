@@ -10,11 +10,13 @@ export async function updateHousehold(
   name: string,
   defaultBudget: number | null,
   slogan: string,
+  primaryColor: string,
 ): Promise<Household> {
   const { data } = await api.put<{ household: Household }>('/household', {
     name,
     default_budget: defaultBudget,
     slogan,
+    primary_color: primaryColor,
   })
   return data.household
 }

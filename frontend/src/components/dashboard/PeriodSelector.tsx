@@ -133,7 +133,7 @@ export default function PeriodSelector({
             onClick={() => onPeriodChange(p.value)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
               period === p.value
-                ? 'bg-white text-blue-700 shadow-sm'
+                ? 'bg-white text-[var(--primary-700)] shadow-sm'
                 : 'text-gray-500 hover:text-gray-800'
             }`}
           >

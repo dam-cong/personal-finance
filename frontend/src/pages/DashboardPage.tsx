@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import PeriodSelector from '../components/dashboard/PeriodSelector'
 import SummaryCards from '../components/dashboard/SummaryCards'
@@ -22,6 +22,11 @@ export default function DashboardPage() {
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null)
   const queryClient = useQueryClient()
   const currentUsername = useAuth((s) => s.username) ?? ''
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo(0, 0)
+  }, [])
 
   const params =
     period === 'month'
@@ -77,7 +82,7 @@ export default function DashboardPage() {
         : new Date(year, 11, 31)
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div ref={scrollRef} className="h-full overflow-y-auto">
       <div className="mx-auto max-w-3xl space-y-4 p-4">
         <PeriodSelector
           period={period}
@@ -115,7 +120,7 @@ export default function DashboardPage() {
             <SpendingChart period={period} buckets={buckets} />
 
             {data?.household && (
-              <div className="rounded-xl bg-blue-50 px-4 py-2.5 text-sm text-blue-800">
+              <div className="rounded-xl bg-[var(--primary-50)] px-4 py-2.5 text-sm text-[var(--primary-800)]">
                 Dashboard chung của nhà <b>{data.household}</b>
                 {memberCount > 0 && ` — ${memberCount} thành viên`}. Chỉ chủ
                 giao dịch mới xóa được.

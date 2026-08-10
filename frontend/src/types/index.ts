@@ -5,6 +5,7 @@ export interface Household {
   default_budget?: number | null
   slogan?: string
   image_url?: string
+  primary_color?: string
 }
 
 export interface User {

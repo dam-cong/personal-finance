@@ -7,6 +7,7 @@ type Household struct {
 	DefaultBudget *int64 `json:"default_budget,omitempty"`  // nil = dùng DEFAULT_BUDGET env
 	Slogan        string `json:"slogan,omitempty"`          // "" = chưa có khẩu hiệu
 	ImageFilename string `json:"image_filename,omitempty"`  // tên file trong data/avatars/, "" = chưa có
+	PrimaryColor  string `json:"primary_color,omitempty"`   // mã hex "#RRGGBB", "" = dùng màu mặc định
 }
 
 // Budget là hạn mức chi tiêu tháng (YYYY-MM) của một nhà.

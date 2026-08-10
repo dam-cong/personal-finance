@@ -30,7 +30,7 @@ export default function FamilyMessageBubble({ message, isOwn }: Props) {
           <div
             className={`rounded-2xl px-4 py-2 shadow-sm ${
               isOwn
-                ? 'rounded-br-sm bg-blue-600 text-white'
+                ? 'rounded-br-sm bg-[var(--primary-600)] text-white'
                 : 'rounded-bl-sm bg-white text-gray-900'
             }`}
           >

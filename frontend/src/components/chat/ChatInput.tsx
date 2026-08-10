@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface Props {
   onSend: (text: string) => void
   onSendImage?: (file: File) => void
   disabled?: boolean
   placeholder?: string
+  autoFocusNonce?: number
 }
 
 function PaperclipIcon({ className }: { className?: string }) {
@@ -20,9 +21,15 @@ export default function ChatInput({
   onSendImage,
   disabled,
   placeholder = 'Nhập: Chi tiêu 1 triệu',
+  autoFocusNonce,
 }: Props) {
   const [text, setText] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (autoFocusNonce) inputRef.current?.focus()
+  }, [autoFocusNonce])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -65,16 +72,17 @@ export default function ChatInput({
           </>
         )}
         <input
+          ref={inputRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:text-sm"
+          className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-base focus:border-[var(--primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-100)] sm:text-sm"
         />
         <button
           type="submit"
           disabled={disabled || !text.trim()}
-          className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-xl bg-[var(--primary-600)] px-5 py-2.5 text-sm font-medium text-white hover:bg-[var(--primary-700)] disabled:opacity-50"
         >
           Gửi
         </button>

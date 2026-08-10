@@ -1,9 +1,13 @@
+import { useEffect, useRef, useState } from 'react'
 import type { BudgetStatus } from '../../types'
 
 interface Props {
   percent: number
   status: BudgetStatus
 }
+
+const DELAY_MS = 400
+const DURATION_MS = 800
 
 const DIAL_MAX = 120
 const CX = 100
@@ -44,7 +48,34 @@ function labelColor(status: BudgetStatus): string {
 }
 
 export default function BudgetGauge({ percent, status }: Props) {
-  const fraction = Math.min(Math.max(percent, 0), DIAL_MAX) / DIAL_MAX
+  const [animated, setAnimated] = useState(0)
+  const [started, setStarted] = useState(false)
+  const animatedRef = useRef(0)
+
+  useEffect(() => {
+    if (started) return
+    const delay = setTimeout(() => setStarted(true), DELAY_MS)
+    return () => clearTimeout(delay)
+  }, [started])
+
+  useEffect(() => {
+    if (!started) return
+    let raf: number
+    const startAt = performance.now()
+    const from = animatedRef.current
+    const tick = (now: number) => {
+      const t = Math.min((now - startAt) / DURATION_MS, 1)
+      const eased = 1 - Math.pow(1 - t, 3)
+      const value = from + (percent - from) * eased
+      animatedRef.current = value
+      setAnimated(value)
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [started, percent])
+
+  const fraction = Math.min(Math.max(animated, 0), DIAL_MAX) / DIAL_MAX
   const needleDeg = fraction * 180 - 90
   const needleTip = polar(NEEDLE_LEN, 90)
 
@@ -69,7 +100,6 @@ export default function BudgetGauge({ percent, status }: Props) {
           style={{
             transformOrigin: `${CX}px ${CY}px`,
             transform: `rotate(${needleDeg}deg)`,
-            transition: 'transform 500ms ease-out',
           }}
         />
         <circle cx={CX} cy={CY} r={6} fill="#374151" />
@@ -82,7 +112,7 @@ export default function BudgetGauge({ percent, status }: Props) {
           fontWeight={700}
           fill={labelColor(status)}
         >
-          {percent}%
+          {Math.round(animated)}%
         </text>
       </svg>
     </div>

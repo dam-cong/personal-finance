@@ -95,7 +95,7 @@ export default function BudgetCard({
           <button
             onClick={openModal}
             disabled={saving}
-            className="rounded-xl bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+            className="rounded-xl bg-[var(--primary-50)] px-3 py-1 text-xs font-medium text-[var(--primary-700)] hover:bg-[var(--primary-100)]"
           >
             {budget && !budget.default ? 'Chỉnh sửa' : 'Đặt hạn mức'}
           </button>
@@ -147,7 +147,7 @@ export default function BudgetCard({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && save()}
           placeholder="VD: 10000000 (10 triệu)"
-          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 focus:border-[var(--primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-100)]"
           autoFocus
         />
         {input && /^\d+$/.test(input.replace(/[^\d]/g, '')) && (
