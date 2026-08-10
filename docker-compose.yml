@@ -11,7 +11,7 @@ services:
       - JWT_SECRET=change-me-in-production
       - DATA_FILE=data/data.json
       - SEED_USERS=hiendc:1998,trangdt:1999
-      - APP_NAME=Gia đình Trang - Hiến
+      - APP_NAME=FamFin
       - HOUSEHOLD_NAME=Gia đình Trang - Hiến
       - DEFAULT_BUDGET=10000000
     volumes:
