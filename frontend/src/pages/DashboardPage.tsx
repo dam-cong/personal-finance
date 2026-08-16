@@ -68,19 +68,6 @@ export default function DashboardPage() {
   const buckets = period === 'month' ? data?.daily ?? [] : data?.monthly ?? []
   const memberCount = data?.members?.length ?? 0
 
-  const rangeStart =
-    period === 'month'
-      ? new Date(year, month - 1, 1)
-      : period === 'quarter'
-        ? new Date(year, (quarter - 1) * 3, 1)
-        : new Date(year, 0, 1)
-  const rangeEnd =
-    period === 'month'
-      ? new Date(year, month, 0)
-      : period === 'quarter'
-        ? new Date(year, quarter * 3, 0)
-        : new Date(year, 11, 31)
-
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto">
       <div className="mx-auto max-w-3xl space-y-4 p-4">
@@ -112,11 +99,7 @@ export default function DashboardPage() {
         ) : (
           <>
             <SummaryCards total={data?.total ?? 0} count={data?.count ?? 0} />
-            <WeekdaySpendingChart
-              transactions={data?.transactions ?? []}
-              rangeStart={rangeStart}
-              rangeEnd={rangeEnd}
-            />
+            <WeekdaySpendingChart />
             <SpendingChart period={period} buckets={buckets} />
 
             {data?.household && (
@@ -130,6 +113,7 @@ export default function DashboardPage() {
             <TransactionList
               key={`${period}-${year}-${month}-${quarter}`}
               transactions={data?.transactions ?? []}
+              members={data?.members ?? []}
               currentUsername={currentUsername}
               onDelete={(id) => {
                 const t = data?.transactions.find((x) => x.id === id)

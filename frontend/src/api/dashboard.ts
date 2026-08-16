@@ -1,5 +1,5 @@
 import { api } from '../lib/api'
-import type { DashboardData, Period } from '../types'
+import type { DashboardData, Period, WeekDashboardData } from '../types'
 
 export interface DashboardParams {
   year?: number
@@ -13,6 +13,13 @@ export async function fetchDashboard(
 ): Promise<DashboardData> {
   const { data } = await api.get<DashboardData>(`/dashboard/${period}`, {
     params,
+  })
+  return data
+}
+
+export async function fetchDashboardWeek(date: string): Promise<WeekDashboardData> {
+  const { data } = await api.get<WeekDashboardData>('/dashboard/week', {
+    params: { date },
   })
   return data
 }

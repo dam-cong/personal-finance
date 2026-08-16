@@ -53,6 +53,7 @@ func RegisterRoutes(r *gin.Engine, s *store.Store, cfg *config.Config) {
 
 	dash := &DashboardHandler{Store: s, Config: cfg}
 	protected.GET("/dashboard/month", dash.Month)
+	protected.GET("/dashboard/week", dash.Week)
 	protected.GET("/dashboard/quarter", dash.Quarter)
 	protected.GET("/dashboard/year", dash.Year)
 }

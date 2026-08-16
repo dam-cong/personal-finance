@@ -58,6 +58,36 @@ func (h *DashboardHandler) Month(c *gin.Context) {
 	})
 }
 
+func (h *DashboardHandler) Week(c *gin.Context) {
+	date := queryDate(c, "date", time.Now())
+
+	weekday := int(date.Weekday())
+	daysSinceMonday := (weekday + 6) % 7
+	start := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local).
+		AddDate(0, 0, -daysSinceMonday)
+	end := start.AddDate(0, 0, 7)
+	labels := dayLabels(start, end)
+
+	st, _, _, _, err := h.summarize(c, start, end, labels, func(t time.Time) string {
+		return t.Format("2006-01-02")
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi đọc dữ liệu"})
+		return
+	}
+	isoYear, isoWeek := start.ISOWeek()
+	c.JSON(http.StatusOK, gin.H{
+		"period":     "week",
+		"week_start": start.Format("2006-01-02"),
+		"week_end":   end.AddDate(0, 0, -1).Format("2006-01-02"),
+		"iso_year":   isoYear,
+		"iso_week":   isoWeek,
+		"total":      st.Total,
+		"count":      st.Count,
+		"daily":      st.Buckets,
+	})
+}
+
 func (h *DashboardHandler) Quarter(c *gin.Context) {
 	now := time.Now()
 	year := queryInt(c, "year", now.Year())
@@ -184,6 +214,18 @@ func queryInt(c *gin.Context, key string, def int) int {
 		return def
 	}
 	return n
+}
+
+func queryDate(c *gin.Context, key string, def time.Time) time.Time {
+	v := c.Query(key)
+	if v == "" {
+		return def
+	}
+	t, err := time.ParseInLocation("2006-01-02", v, time.Local)
+	if err != nil {
+		return def
+	}
+	return t
 }
 
 func dayLabels(start, end time.Time) []string {

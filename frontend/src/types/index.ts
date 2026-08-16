@@ -74,6 +74,16 @@ export interface Bucket {
   total: number
 }
 
+export interface WeekDashboardData {
+  week_start: string
+  week_end: string
+  iso_year: number
+  iso_week: number
+  total: number
+  count: number
+  daily: Bucket[]
+}
+
 export interface Budget {
   id: number
   household_id: number

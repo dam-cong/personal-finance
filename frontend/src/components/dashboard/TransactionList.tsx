@@ -5,6 +5,7 @@ import type { Transaction } from '../../types'
 
 interface Props {
   transactions: Transaction[]
+  members: string[]
   onDelete?: (id: number) => void
   currentUsername?: string
 }
@@ -21,20 +22,45 @@ function amountRowClass(amount: number): string {
 
 export default function TransactionList({
   transactions,
+  members,
   onDelete,
   currentUsername,
 }: Props) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [selectedUser, setSelectedUser] = useState<string | null>(null)
+
+  const totalsByUser = useMemo(() => {
+    const totals = new Map<string, number>()
+    for (const m of members) totals.set(m, 0)
+    for (const t of transactions) {
+      totals.set(t.username, (totals.get(t.username) ?? 0) + t.amount)
+    }
+    return [...totals.entries()].sort((a, b) => b[1] - a[1])
+  }, [transactions, members])
+
+  const grandTotal = transactions.reduce((sum, t) => sum + t.amount, 0)
+
+  const filtered = selectedUser
+    ? transactions.filter((t) => t.username === selectedUser)
+    : transactions
+  const filteredTotal = selectedUser
+    ? (totalsByUser.find(([u]) => u === selectedUser)?.[1] ?? 0)
+    : grandTotal
 
   const sorted = useMemo(
     () =>
-      [...transactions].sort(
+      [...filtered].sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       ),
-    [transactions],
+    [filtered],
   )
   const visible = sorted.slice(0, visibleCount)
+
+  function selectUser(user: string | null) {
+    setSelectedUser(user)
+    setVisibleCount(PAGE_SIZE)
+  }
 
   if (transactions.length === 0) {
     return (
@@ -46,9 +72,44 @@ export default function TransactionList({
 
   return (
     <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-      <div className="border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-900">
-        Giao dịch
+      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
+        <span className="text-sm font-semibold text-gray-900">Giao dịch</span>
+        <span className="text-sm font-semibold text-red-600">
+          {formatVND(filteredTotal)}
+        </span>
       </div>
+      {totalsByUser.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto border-b border-gray-100 px-5 py-3">
+          <button
+            onClick={() => selectUser(null)}
+            className={`flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${
+              selectedUser === null
+                ? 'bg-[var(--primary-600)] text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Tất cả · {formatVND(grandTotal)}
+          </button>
+          {totalsByUser.map(([user, amount]) => (
+            <button
+              key={user}
+              onClick={() => selectUser(user)}
+              className={`flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${
+                selectedUser === user
+                  ? 'bg-[var(--primary-600)] text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {user} · {formatVND(amount)}
+            </button>
+          ))}
+        </div>
+      )}
+      {visible.length === 0 && (
+        <p className="px-5 py-6 text-center text-sm text-gray-400">
+          Không có giao dịch nào của thành viên này.
+        </p>
+      )}
       <ul className="divide-y divide-gray-100">
         {visible.map((t) => (
           <li
