@@ -98,7 +98,11 @@ export default function DashboardPage() {
           </p>
         ) : (
           <>
-            <SummaryCards total={data?.total ?? 0} count={data?.count ?? 0} />
+            <SummaryCards
+              total={data?.total ?? 0}
+              count={data?.count ?? 0}
+              remaining={data?.budget?.remaining}
+            />
             <WeekdaySpendingChart />
             <SpendingChart period={period} buckets={buckets} />
 
