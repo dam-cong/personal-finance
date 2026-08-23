@@ -1,0 +1,13 @@
+{
+  "name": "Gia đình Trang - Hiến",
+  "short_name": "FamFin",
+  "description": "Ứng dụng quản lý chi tiêu qua giao diện chat",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2563EB",
+  "theme_color": "#2563EB",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
