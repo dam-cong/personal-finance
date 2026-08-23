@@ -148,7 +148,7 @@ export default function AppLayout() {
       </header>
       <main
         className={`min-h-0 flex-1 overflow-hidden md:pb-0 ${
-          keyboardOpen ? '' : 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
+          keyboardOpen ? '' : 'pb-[calc(5rem+env(safe-area-inset-bottom))]'
         }`}
       >
         <Outlet />

@@ -33,7 +33,7 @@ function TabItem({ to, label, Icon, ActiveIcon, showBadge }: TabItemProps) {
   return (
     <NavLink
       to={to}
-      className="flex flex-col items-center justify-center gap-0.5 py-2 transition-transform active:scale-90"
+      className="flex flex-col items-center justify-center gap-0.5 py-1.5 transition-transform active:scale-90"
     >
       {({ isActive }) => (
         <>
@@ -68,8 +68,8 @@ export default function BottomNav({
   const navigate = useNavigate()
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 pb-[env(safe-area-inset-bottom)] md:hidden">
-      <div className="relative grid grid-cols-5 items-end rounded-t-3xl border-t border-gray-100 bg-white px-2 pt-2 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+    <nav className="fixed inset-x-0 bottom-0 z-20 md:hidden">
+      <div className="relative grid grid-cols-5 items-end rounded-t-3xl border-t border-gray-100 bg-white px-2 pt-1.5 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
         <TabItem
           to="/family-chat"
           label="Gia đình"
@@ -79,7 +79,7 @@ export default function BottomNav({
         />
         <button
           onClick={onOpenInfo}
-          className="flex flex-col items-center justify-center gap-0.5 py-2 transition-transform active:scale-90"
+          className="flex flex-col items-center justify-center gap-0.5 py-1.5 transition-transform active:scale-90"
         >
           {infoOpen ? (
             <HouseholdFilledIcon className="h-6 w-6 text-[var(--primary-600)]" />
@@ -94,7 +94,7 @@ export default function BottomNav({
         <TabItem to="/dashboard" label="Thống kê" Icon={StatsOutlineIcon} ActiveIcon={StatsFilledIcon} />
         <button
           onClick={onOpenAccount}
-          className="flex flex-col items-center justify-center gap-0.5 py-2 transition-transform active:scale-90"
+          className="flex flex-col items-center justify-center gap-0.5 py-1.5 transition-transform active:scale-90"
         >
           <Avatar
             avatarUrl={avatarUrl ?? undefined}
@@ -109,7 +109,7 @@ export default function BottomNav({
         <button
           onClick={() => navigate('/chat', { state: { focusInput: true, nonce: Date.now() } })}
           aria-label="Ghi giao dịch nhanh"
-          className="absolute left-1/2 top-0 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] text-white shadow-lg ring-4 ring-white transition-transform active:scale-90"
+          className="absolute left-1/2 top-0 flex h-14 w-14 -translate-x-1/2 -translate-y-5 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] text-white shadow-lg ring-4 ring-white transition-transform active:scale-90"
         >
           <PlusIcon className="h-7 w-7" />
         </button>
