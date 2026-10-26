@@ -18,14 +18,25 @@ import (
 func main() {
 	cfg := config.Load()
 
-	st, err := store.New(cfg.DataFile, cfg.HouseholdName)
-	if err != nil {
-		log.Fatalf("mở store: %v", err)
+	var repo store.Repository
+	var err error
+	if strings.EqualFold(cfg.DataBackend, "sheets") {
+		// Sheets store sẽ được thêm ở phần sau; tạm thời lỗi rõ ràng nếu chưa cấu hình
+		repo, err = store.NewSheetsStore(cfg)
+		if err != nil {
+			log.Fatalf("mở sheets store: %v", err)
+		}
+	} else {
+		fs, err := store.NewFileStore(cfg.DataFile, cfg.HouseholdName)
+		if err != nil {
+			log.Fatalf("mở store: %v", err)
+		}
+		repo = fs
+		seedUsers(fs, cfg)
 	}
-	seedUsers(st, cfg)
 
 	r := gin.Default()
-	handlers.RegisterRoutes(r, st, cfg)
+	handlers.RegisterRoutes(r, repo, cfg)
 	serveFrontend(r)
 
 	log.Printf("server chạy trên :%s", cfg.Port)
@@ -34,7 +45,7 @@ func main() {
 	}
 }
 
-func seedUsers(st *store.Store, cfg *config.Config) {
+func seedUsers(st *store.FileStore, cfg *config.Config) {
 	hh, err := st.DefaultHousehold()
 	if err != nil {
 		log.Printf("chưa có nhà, bỏ qua seed user: %v", err)

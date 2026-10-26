@@ -14,7 +14,7 @@ import (
 var hexColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
 
 type HouseholdHandler struct {
-	Store  *store.Store
+	Store  store.Repository
 	Config *config.Config
 }
 

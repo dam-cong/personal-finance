@@ -13,7 +13,7 @@ import (
 var monthRe = regexp.MustCompile(`^\d{4}-(0[1-9]|1[0-2])$`)
 
 type BudgetHandler struct {
-	Store *store.Store
+	Store store.Repository
 }
 
 type setBudgetRequest struct {
@@ -67,7 +67,7 @@ func (h *BudgetHandler) Delete(c *gin.Context) {
 }
 
 // currentHouseholdID lấy household của user đang đăng nhập (qua JWT).
-func currentHouseholdID(c *gin.Context, st *store.Store) (int, error) {
+func currentHouseholdID(c *gin.Context, st store.Repository) (int, error) {
 	username, _ := c.Get("username")
 	u, err := st.FindUser(fmt.Sprint(username))
 	if err != nil {

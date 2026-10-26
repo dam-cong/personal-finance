@@ -8,7 +8,7 @@ import (
 	"personal-finance/backend/internal/store"
 )
 
-func RegisterRoutes(r *gin.Engine, s *store.Store, cfg *config.Config) {
+func RegisterRoutes(r *gin.Engine, s store.Repository, cfg *config.Config) {
 	api := r.Group("/api")
 
 	auth := &AuthHandler{Store: s, Config: cfg}
@@ -17,6 +17,9 @@ func RegisterRoutes(r *gin.Engine, s *store.Store, cfg *config.Config) {
 
 	cfgHandler := &ConfigHandler{Config: cfg}
 	api.GET("/config", cfgHandler.Get)
+
+	admin := &AdminHandler{Store: s, Config: cfg}
+	api.POST("/admin/init", admin.Init)
 
 	protected := api.Group("")
 	protected.Use(middleware.Auth(cfg.JWTSecret))

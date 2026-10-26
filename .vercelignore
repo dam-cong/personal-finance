@@ -1,0 +1,8 @@
+backend/data/
+backend/server.log
+data/
+bin/
+frontend/dist/
+.env
+.env.*
+*.log

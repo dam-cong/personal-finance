@@ -15,7 +15,7 @@ import (
 )
 
 type AuthHandler struct {
-	Store  *store.Store
+	Store  store.Repository
 	Config *config.Config
 }
 

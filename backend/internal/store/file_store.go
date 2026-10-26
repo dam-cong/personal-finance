@@ -1,4 +1,4 @@
-package store
+﻿package store
 
 import (
 	"encoding/json"
@@ -22,14 +22,14 @@ type dataFile struct {
 	NextBudgetID      int                  `json:"next_budget_id"`
 }
 
-type Store struct {
+type FileStore struct {
 	mu   sync.RWMutex
 	path string
 	data dataFile
 }
 
-func New(path, householdName string) (*Store, error) {
-	s := &Store{path: path}
+func NewFileStore(path, householdName string) (*FileStore, error) {
+	s := &FileStore{path: path}
 	if err := s.load(); err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func New(path, householdName string) (*Store, error) {
 	return s, nil
 }
 
-func (s *Store) load() error {
+func (s *FileStore) load() error {
 	b, err := os.ReadFile(s.path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -63,9 +63,9 @@ func (s *Store) load() error {
 	return nil
 }
 
-// migrate đảm bảo luôn có ít nhất 1 nhà mặc định và gán user cũ (household_id=0)
-// vào nhà mặc định đó.
-func (s *Store) migrate(householdName string) error {
+// migrate Ä‘áº£m báº£o luÃ´n cÃ³ Ã­t nháº¥t 1 nhÃ  máº·c Ä‘á»‹nh vÃ  gÃ¡n user cÅ© (household_id=0)
+// vÃ o nhÃ  máº·c Ä‘á»‹nh Ä‘Ã³.
+func (s *FileStore) migrate(householdName string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -103,13 +103,13 @@ func (s *Store) migrate(householdName string) error {
 	return nil
 }
 
-func (s *Store) Save() error {
+func (s *FileStore) Save() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.saveLocked()
 }
 
-func (s *Store) saveLocked() error {
+func (s *FileStore) saveLocked() error {
 	dir := filepath.Dir(s.path)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
@@ -125,7 +125,7 @@ func (s *Store) saveLocked() error {
 	return os.Rename(tmp, s.path)
 }
 
-func (s *Store) FindUser(username string) (*models.User, error) {
+func (s *FileStore) FindUser(username string) (*models.User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for i := range s.data.Users {
@@ -137,7 +137,7 @@ func (s *Store) FindUser(username string) (*models.User, error) {
 	return nil, fmt.Errorf("user %q not found", username)
 }
 
-func (s *Store) DefaultHousehold() (*models.Household, error) {
+func (s *FileStore) DefaultHousehold() (*models.Household, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if len(s.data.Households) == 0 {
@@ -147,7 +147,7 @@ func (s *Store) DefaultHousehold() (*models.Household, error) {
 	return &h, nil
 }
 
-func (s *Store) FindHousehold(id int) (*models.Household, error) {
+func (s *FileStore) FindHousehold(id int) (*models.Household, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for i := range s.data.Households {
@@ -159,9 +159,9 @@ func (s *Store) FindHousehold(id int) (*models.Household, error) {
 	return nil, fmt.Errorf("household %d not found", id)
 }
 
-// UpdateHousehold cập nhật tên, hạn mức mặc định override, và khẩu hiệu của
-// một nhà — mọi thành viên trong nhà đều có thể gọi (không có owner/role).
-func (s *Store) UpdateHousehold(id int, name string, defaultBudget *int64, slogan string, primaryColor string) (*models.Household, error) {
+// UpdateHousehold cáº­p nháº­t tÃªn, háº¡n má»©c máº·c Ä‘á»‹nh override, vÃ  kháº©u hiá»‡u cá»§a
+// má»™t nhÃ  â€” má»i thÃ nh viÃªn trong nhÃ  Ä‘á»u cÃ³ thá»ƒ gá»i (khÃ´ng cÃ³ owner/role).
+func (s *FileStore) UpdateHousehold(id int, name string, defaultBudget *int64, slogan string, primaryColor string) (*models.Household, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for i := range s.data.Households {
@@ -180,9 +180,9 @@ func (s *Store) UpdateHousehold(id int, name string, defaultBudget *int64, sloga
 	return nil, fmt.Errorf("household %d not found", id)
 }
 
-// UpdateUserDisplayName đổi tên hiển thị của user (dữ liệu riêng, không
-// dùng chung theo nhà).
-func (s *Store) UpdateUserDisplayName(username, displayName string) (*models.User, error) {
+// UpdateUserDisplayName Ä‘á»•i tÃªn hiá»ƒn thá»‹ cá»§a user (dá»¯ liá»‡u riÃªng, khÃ´ng
+// dÃ¹ng chung theo nhÃ ).
+func (s *FileStore) UpdateUserDisplayName(username, displayName string) (*models.User, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for i := range s.data.Users {
@@ -198,7 +198,7 @@ func (s *Store) UpdateUserDisplayName(username, displayName string) (*models.Use
 	return nil, fmt.Errorf("user %q not found", username)
 }
 
-func (s *Store) ListUsersInHousehold(householdID int) []string {
+func (s *FileStore) ListUsersInHousehold(householdID int) []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var names []string
@@ -210,13 +210,13 @@ func (s *Store) ListUsersInHousehold(householdID int) []string {
 	return names
 }
 
-func (s *Store) UserCount() int {
+func (s *FileStore) UserCount() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return len(s.data.Users)
 }
 
-func (s *Store) CreateUser(u *models.User) error {
+func (s *FileStore) CreateUser(u *models.User) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	u.ID = s.data.NextUserID
@@ -228,14 +228,14 @@ func (s *Store) CreateUser(u *models.User) error {
 	return s.saveLocked()
 }
 
-func (s *Store) ListTransactions() ([]models.Transaction, error) {
+func (s *FileStore) ListTransactions() ([]models.Transaction, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return newestFirst(s.data.Transactions), nil
 }
 
-// ListTransactionsByUser trả về giao dịch của một user (chat riêng).
-func (s *Store) ListTransactionsByUser(username string) ([]models.Transaction, error) {
+// ListTransactionsByUser tráº£ vá» giao dá»‹ch cá»§a má»™t user (chat riÃªng).
+func (s *FileStore) ListTransactionsByUser(username string) ([]models.Transaction, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var filtered []models.Transaction
@@ -247,8 +247,8 @@ func (s *Store) ListTransactionsByUser(username string) ([]models.Transaction, e
 	return newestFirst(filtered), nil
 }
 
-// ListTransactionsByHousehold trả về giao dịch của mọi thành viên trong nhà (dashboard chung).
-func (s *Store) ListTransactionsByHousehold(householdID int) ([]models.Transaction, error) {
+// ListTransactionsByHousehold tráº£ vá» giao dá»‹ch cá»§a má»i thÃ nh viÃªn trong nhÃ  (dashboard chung).
+func (s *FileStore) ListTransactionsByHousehold(householdID int) ([]models.Transaction, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	members := map[string]bool{}
@@ -266,7 +266,7 @@ func (s *Store) ListTransactionsByHousehold(householdID int) ([]models.Transacti
 	return newestFirst(filtered), nil
 }
 
-func (s *Store) GetTransaction(id int) (*models.Transaction, error) {
+func (s *FileStore) GetTransaction(id int) (*models.Transaction, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for i := range s.data.Transactions {
@@ -286,7 +286,7 @@ func newestFirst(items []models.Transaction) []models.Transaction {
 	return out
 }
 
-func (s *Store) CreateTransaction(t *models.Transaction) error {
+func (s *FileStore) CreateTransaction(t *models.Transaction) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	t.ID = s.data.NextTransactionID
@@ -298,7 +298,7 @@ func (s *Store) CreateTransaction(t *models.Transaction) error {
 	return s.saveLocked()
 }
 
-func (s *Store) DeleteTransaction(id int) error {
+func (s *FileStore) DeleteTransaction(id int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for i := range s.data.Transactions {
@@ -310,8 +310,8 @@ func (s *Store) DeleteTransaction(id int) error {
 	return fmt.Errorf("transaction %d not found", id)
 }
 
-// SetBudget đặt (hoặc cập nhật) hạn mức tháng của một nhà — upsert theo (household, month).
-func (s *Store) SetBudget(householdID int, month string, amount int64) (*models.Budget, error) {
+// SetBudget Ä‘áº·t (hoáº·c cáº­p nháº­t) háº¡n má»©c thÃ¡ng cá»§a má»™t nhÃ  â€” upsert theo (household, month).
+func (s *FileStore) SetBudget(householdID int, month string, amount int64) (*models.Budget, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for i := range s.data.Budgets {
@@ -340,7 +340,7 @@ func (s *Store) SetBudget(householdID int, month string, amount int64) (*models.
 	return b, nil
 }
 
-func (s *Store) GetBudget(householdID int, month string) (*models.Budget, error) {
+func (s *FileStore) GetBudget(householdID int, month string) (*models.Budget, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for i := range s.data.Budgets {
@@ -352,7 +352,7 @@ func (s *Store) GetBudget(householdID int, month string) (*models.Budget, error)
 	return nil, nil
 }
 
-func (s *Store) DeleteBudget(householdID int, month string) error {
+func (s *FileStore) DeleteBudget(householdID int, month string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for i := range s.data.Budgets {

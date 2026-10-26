@@ -15,7 +15,7 @@ import (
 )
 
 type TransactionHandler struct {
-	Store *store.Store
+	Store store.Repository
 }
 
 type createTransactionRequest struct {

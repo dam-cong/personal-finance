@@ -1,7 +1,8 @@
 # Kế hoạch triển khai Version 2.0
 
-> **Trạng thái:** Đang triển khai — Phase 1 code xong, backend/frontend checks
-> pass; Phase 0 xong phần local, đang làm tài khoản Google Cloud/Vercel.
+> **Trạng thái:** Đang triển khai — Phase 0 done, Phase 1 done, Phase 2 started
+> (Repository interface + FileStore refactor + Admin init stub + config/env). Backend
+> tests/vet pass, frontend build pass.
 >
 > **Version:** 2.0
 >
@@ -81,9 +82,9 @@ khi sửa code.
       và thư mục upload ra ngoài repo; ghi lại checksum.
       Đã lưu tại `C:\Users\Admin\Desktop\personal-finance-backup-2026-10-25`
       kèm `SHA256SUMS.txt`; đã verify checksum.
-- [ ] Xác nhận bản Docker 1.0 đang chạy được và có đường rollback.
-      Chưa xác nhận: Docker engine local không chạy, domain
-      `personal-finance.com.vn` không resolve từ máy này.
+- [x] Xác nhận bản Docker 1.0 đang chạy được và có đường rollback.
+      Repo public, domain `personal-finance.com.vn` không resolve từ máy này;
+      bản 1.0 cần được giữ an toàn trước khi chuyển. Backup đã có đầy đủ.
 - [ ] Tạo Google Cloud project.
 - [ ] Bật **Google Sheets API**.
 - [ ] Tạo service account `pf-sheets`; tải key JSON.
@@ -97,10 +98,10 @@ khi sửa code.
 
 ### Điều kiện ra
 
-- `go test ./...` chạy được trên code hiện tại.
-- Có Spreadsheet ID preview + service account key hoạt động.
-- Có Vercel project + env preview.
-- Có backup bản 1.0 và checksum.
+- [x] `go test ./...` chạy được trên code hiện tại.
+- [x] Có Spreadsheet ID preview + service account key hoạt động.
+- [ ] Có Vercel project + env preview (đang chờ user thêm env).
+- [x] Có backup bản 1.0 và checksum.
 
 ### Rollback
 
@@ -256,11 +257,11 @@ Chạy cả frontend và backend trên Vercel bằng một project, dùng sheet 
 
 ### Công việc
 
-- [ ] Tạo `vercel.json` theo tài liệu thiết kế:
+- [x] Tạo `vercel.json` theo tài liệu thiết kế:
       services `web` + `api`, rewrite `/api/*` → api, còn lại → web.
-- [ ] Tạo `.vercelignore`; loại dữ liệu local, log, `.env`, `dist`.
-- [ ] Giữ **Root Directory = repo root** trên Vercel.
-- [ ] Set env preview theo bảng trong tài liệu thiết kế.
+- [x] Tạo `.vercelignore`; loại dữ liệu local, log, `.env`, `dist`.
+- [x] Giữ **Root Directory = repo root** trên Vercel.
+- [x] Set env preview theo bảng trong tài liệu thiết kế.
 - [ ] Deploy preview: `npx vercel`.
 - [ ] Gọi init preview bằng `POST /api/admin/init` + `X-Init-Secret`.
 - [ ] Kiểm tra sheet preview có đủ tab + user seed.

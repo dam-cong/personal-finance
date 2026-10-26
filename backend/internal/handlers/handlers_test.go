@@ -11,7 +11,7 @@ import (
 )
 
 func TestRemovedFeatureRoutesNotRegistered(t *testing.T) {
-	st, err := store.New(filepath.Join(t.TempDir(), "data.json"), "Nhà test")
+	st, err := store.NewFileStore(filepath.Join(t.TempDir(), "data.json"), "Nhà test")
 	if err != nil {
 		t.Fatalf("store.New: %v", err)
 	}

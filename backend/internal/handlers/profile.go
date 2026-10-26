@@ -11,7 +11,7 @@ import (
 )
 
 type ProfileHandler struct {
-	Store *store.Store
+	Store store.Repository
 }
 
 func (h *ProfileHandler) Get(c *gin.Context) {

@@ -15,7 +15,7 @@ import (
 )
 
 type DashboardHandler struct {
-	Store  *store.Store
+	Store  store.Repository
 	Config *config.Config
 }
 
@@ -170,7 +170,7 @@ func (h *DashboardHandler) summarize(c *gin.Context, start, end time.Time, label
 // budgetBlock trả về thông tin hạn mức tháng. Nếu chưa đặt hạn mức riêng cho
 // tháng thì dùng hạn mức mặc định (default=true); DEFAULT_BUDGET=0 tắt mặc định
 // và trả nil khi chưa đặt.
-func budgetBlock(st *store.Store, householdID int, month string, spent, defaultBudget int64) gin.H {
+func budgetBlock(st store.Repository, householdID int, month string, spent, defaultBudget int64) gin.H {
 	b, err := st.GetBudget(householdID, month)
 	amount := defaultBudget
 	isDefault := true
