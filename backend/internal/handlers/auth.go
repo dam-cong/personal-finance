@@ -103,6 +103,5 @@ func (h *AuthHandler) respondToken(c *gin.Context, status int, u *models.User) {
 		"household_id":   u.HouseholdID,
 		"household_name": householdName,
 		"display_name":   u.DisplayName,
-		"avatar_url":     avatarURL(u.AvatarFilename),
 	})
 }

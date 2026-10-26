@@ -13,13 +13,12 @@ export default function MessageBubble({ message, onDelete }: Props) {
   const isUser = message.role === 'user'
   const displayName = useAuth((s) => s.displayName)
   const username = useAuth((s) => s.username)
-  const avatarUrl = useAuth((s) => s.avatarUrl)
   const nameLabel = displayName || username || '?'
 
   return (
     <div className={`group flex items-end gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
       {isUser ? (
-        <Avatar avatarUrl={avatarUrl ?? undefined} label={nameLabel} className="h-7 w-7" />
+        <Avatar label={nameLabel} className="h-7 w-7" />
       ) : (
         <img
           src="/favicon.png"

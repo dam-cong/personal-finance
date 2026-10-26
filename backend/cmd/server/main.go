@@ -5,9 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 
@@ -27,17 +25,7 @@ func main() {
 	seedUsers(st, cfg)
 
 	r := gin.Default()
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
 	handlers.RegisterRoutes(r, st, cfg)
-	serveUploadDir(r, cfg, "avatars", "/avatars")
-	serveUploadDir(r, cfg, "chat-images", "/chat-images")
 	serveFrontend(r)
 
 	log.Printf("server chạy trên :%s", cfg.Port)
@@ -82,17 +70,6 @@ func seedUsers(st *store.Store, cfg *config.Config) {
 		}
 		log.Printf("đã tạo user: %s", username)
 	}
-}
-
-// serveUploadDir đảm bảo thư mục upload (avatars, chat-images...) tồn tại
-// và serve tĩnh tại urlPrefix.
-func serveUploadDir(r *gin.Engine, cfg *config.Config, subdir, urlPrefix string) {
-	dir := filepath.Join(filepath.Dir(cfg.DataFile), subdir)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		log.Printf("không tạo được thư mục %s: %v", subdir, err)
-		return
-	}
-	r.Static(urlPrefix, dir)
 }
 
 func serveFrontend(r *gin.Engine) {

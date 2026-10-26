@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"path/filepath"
-
 	"github.com/gin-gonic/gin"
 
 	"personal-finance/backend/internal/config"
@@ -31,25 +29,13 @@ func RegisterRoutes(r *gin.Engine, s *store.Store, cfg *config.Config) {
 	protected.PUT("/budgets", budget.Set)
 	protected.DELETE("/budgets", budget.Delete)
 
-	avatarDir := filepath.Join(filepath.Dir(cfg.DataFile), "avatars")
-
-	household := &HouseholdHandler{Store: s, Config: cfg, AvatarDir: avatarDir}
+	household := &HouseholdHandler{Store: s, Config: cfg}
 	protected.GET("/household", household.Get)
 	protected.PUT("/household", household.Update)
-	protected.POST("/household/image", household.UploadImage)
 
-	profile := &ProfileHandler{Store: s, AvatarDir: avatarDir}
+	profile := &ProfileHandler{Store: s}
 	protected.GET("/me", profile.Get)
 	protected.PUT("/me", profile.UpdateName)
-	protected.POST("/me/avatar", profile.UploadAvatar)
-
-	chatImageDir := filepath.Join(filepath.Dir(cfg.DataFile), "chat-images")
-	msg := &MessageHandler{Store: s, ImageDir: chatImageDir}
-	protected.GET("/messages", msg.List)
-	protected.POST("/messages", msg.Create)
-	protected.GET("/messages/unread-count", msg.UnreadCount)
-	protected.POST("/messages/read", msg.MarkRead)
-	protected.POST("/messages/image", msg.UploadImage)
 
 	dash := &DashboardHandler{Store: s, Config: cfg}
 	protected.GET("/dashboard/month", dash.Month)

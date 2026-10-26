@@ -4,7 +4,6 @@ import { useAuth } from '../../stores/auth'
 import { useApp } from '../../stores/app'
 import { useMemo, useState, type CSSProperties } from 'react'
 import { fetchHousehold } from '../../api/household'
-import { fetchUnreadCount } from '../../api/messages'
 import HouseholdInfoModal from './HouseholdInfoModal'
 import ProfileModal from './ProfileModal'
 import BottomNav from './BottomNav'
@@ -22,7 +21,6 @@ export default function AppLayout() {
   const username = useAuth((s) => s.username)
   const householdName = useAuth((s) => s.householdName)
   const displayName = useAuth((s) => s.displayName)
-  const avatarUrl = useAuth((s) => s.avatarUrl)
   const logout = useAuth((s) => s.logout)
   const appName = useApp((s) => s.appName)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -37,11 +35,6 @@ export default function AppLayout() {
     queryFn: fetchHousehold,
     staleTime: Infinity,
   })
-  const { data: unreadCount } = useQuery({
-    queryKey: ['unread-messages'],
-    queryFn: fetchUnreadCount,
-    refetchInterval: 5000,
-  })
   const themeStyle = useMemo(() => {
     const shades = hexToShades(household?.primary_color || DEFAULT_PRIMARY_COLOR)
     return Object.fromEntries(
@@ -54,13 +47,6 @@ export default function AppLayout() {
       <header className="sticky top-0 z-10 flex flex-col items-center rounded-b-3xl bg-gradient-to-r from-[var(--primary-500)] via-[var(--primary-600)] to-[var(--primary-700)] px-3 py-2 text-white shadow-sm">
         <div className="flex w-full min-w-0 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
-            {household?.image_url && (
-              <img
-                src={household.image_url}
-                alt="Ảnh nhà"
-                className="h-7 w-7 flex-shrink-0 rounded-full object-cover ring-2 ring-white/40"
-              />
-            )}
             <h1 className="truncate text-base font-bold text-white">
               {appName}
             </h1>
@@ -83,12 +69,6 @@ export default function AppLayout() {
             <NavLink to="/chat" className={navLinkClass}>
               Chat
             </NavLink>
-            <NavLink to="/family-chat" className={navLinkClass}>
-              Trò chuyện
-              {(unreadCount ?? 0) > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[var(--primary-600)]" />
-              )}
-            </NavLink>
             <NavLink to="/dashboard" className={navLinkClass}>
               Dashboard
             </NavLink>
@@ -100,13 +80,9 @@ export default function AppLayout() {
               aria-label="Menu tài khoản"
               className="block h-8 w-8 overflow-hidden rounded-full ring-2 ring-white/40 hover:ring-white/70"
             >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center bg-white/20 text-sm font-semibold text-white">
-                  {avatarInitial}
-                </span>
-              )}
+              <span className="flex h-full w-full items-center justify-center bg-white/20 text-sm font-semibold text-white">
+                {avatarInitial}
+              </span>
             </button>
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-44 rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5">
@@ -155,19 +131,16 @@ export default function AppLayout() {
       </main>
       {!keyboardOpen && (
         <BottomNav
-          unreadCount={unreadCount ?? 0}
           onOpenAccount={() => setAccountSheetOpen(true)}
           accountOpen={accountSheetOpen}
           onOpenInfo={() => setInfoOpen(true)}
           infoOpen={infoOpen}
-          avatarUrl={avatarUrl}
           nameLabel={nameLabel}
         />
       )}
       <BottomSheet open={accountSheetOpen} onClose={() => setAccountSheetOpen(false)}>
         <AccountSheet
           nameLabel={nameLabel}
-          avatarUrl={avatarUrl}
           onProfile={() => {
             setAccountSheetOpen(false)
             setProfileOpen(true)

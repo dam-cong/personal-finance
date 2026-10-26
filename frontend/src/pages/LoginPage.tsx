@@ -95,7 +95,6 @@ export default function LoginPage() {
         data.username,
         data.household_name,
         data.display_name,
-        data.avatar_url,
       )
       navigate('/', { replace: true })
     } catch (err) {

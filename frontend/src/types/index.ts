@@ -4,7 +4,6 @@ export interface Household {
   created_at: string
   default_budget?: number | null
   slogan?: string
-  image_url?: string
   primary_color?: string
 }
 
@@ -14,7 +13,6 @@ export interface User {
   household_id: number
   created_at: string
   display_name?: string
-  avatar_url?: string
 }
 
 export interface Transaction {
@@ -31,7 +29,6 @@ export interface LoginResponse {
   household_id: number
   household_name: string
   display_name?: string
-  avatar_url?: string
 }
 
 export interface AppConfig {
@@ -44,17 +41,6 @@ export interface CreateTransactionResponse {
   reply: string
   valid?: boolean
   saved?: boolean
-}
-
-export interface FamilyMessage {
-  id: number
-  household_id: number
-  username: string
-  display_name?: string
-  avatar_url?: string
-  content: string
-  image_url?: string
-  created_at: string
 }
 
 export interface ChatMessage {

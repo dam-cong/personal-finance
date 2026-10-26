@@ -10,8 +10,9 @@ số tiền, lưu vào file JSON, và trả lời xác nhận.
 
 - **Backend:** Go + Gin (JSON store, không cần cơ sở dữ liệu ngoài)
 - **Frontend:** React + Vite + TypeScript + Tailwind CSS
-- **Tài liệu liên quan:** `Personal_Finance_Chat_Idea.md` (ý tưởng),
-  `Personal_Finance_Chat_Plan.md` (kế hoạch chi tiết)
+- **Tài liệu:** [Mục lục tài liệu](docs/README.md)
+  - Version 1.0 (đang chạy): [docs/v1.0/README.md](docs/v1.0/README.md)
+  - Version 2.0 (kế hoạch sẵn sàng, chưa code): [docs/v2.0/README.md](docs/v2.0/README.md)
 
 > Trạng thái hiện tại: **Phase 4 hoàn thành** (nền tảng + đăng nhập + chat nhập
 > chi tiêu + dashboard tháng/quý/năm + mô hình "nhà": chat riêng, dashboard chung).

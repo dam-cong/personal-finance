@@ -2,29 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 
 interface Props {
   onSend: (text: string) => void
-  onSendImage?: (file: File) => void
   disabled?: boolean
   placeholder?: string
   autoFocusNonce?: number
 }
 
-function PaperclipIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className}>
-      <path d="M8 12l6.5-6.5a3 3 0 0 1 4.24 4.24L11 17.5a5 5 0 0 1-7.07-7.07L12.5 2" />
-    </svg>
-  )
-}
-
 export default function ChatInput({
   onSend,
-  onSendImage,
   disabled,
   placeholder = 'Nhập: Chi tiêu 1 triệu',
   autoFocusNonce,
 }: Props) {
   const [text, setText] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -39,38 +28,12 @@ export default function ChatInput({
     setText('')
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (file && onSendImage) onSendImage(file)
-  }
-
   return (
     <form
       onSubmit={handleSubmit}
       className="border-t border-gray-200 bg-white px-4 py-3"
     >
       <div className="mx-auto flex max-w-3xl items-center gap-2">
-        {onSendImage && (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled}
-              aria-label="Đính kèm ảnh"
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 disabled:opacity-50"
-            >
-              <PaperclipIcon className="h-5 w-5" />
-            </button>
-          </>
-        )}
         <input
           ref={inputRef}
           value={text}

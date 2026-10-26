@@ -1,6 +1,6 @@
 # Redesign LoginPage theo style ảnh mẫu (split-panel: trái xanh trang trí + phải form trắng)
 
-> **Trạng thái:** Đã triển khai vào [LoginPage.tsx](../frontend/src/pages/LoginPage.tsx),
+> **Trạng thái:** Đã triển khai vào [LoginPage.tsx](../../frontend/src/pages/LoginPage.tsx),
 > người dùng đã xem trực tiếp trên trình duyệt và xác nhận OK.
 >
 > Sai khác so với plan ban đầu (theo phản hồi trực tiếp của người dùng khi

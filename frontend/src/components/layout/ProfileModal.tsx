@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Modal from '../ui/Modal'
-import { updateDisplayName, uploadAvatar } from '../../api/profile'
+import { updateDisplayName } from '../../api/profile'
 import { useAuth } from '../../stores/auth'
 
 interface Props {
@@ -8,69 +8,27 @@ interface Props {
   onClose: () => void
 }
 
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024
-
 export default function ProfileModal({ open, onClose }: Props) {
   const username = useAuth((s) => s.username) ?? ''
   const storedDisplayName = useAuth((s) => s.displayName)
-  const storedAvatarUrl = useAuth((s) => s.avatarUrl)
   const setProfile = useAuth((s) => s.setProfile)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [displayName, setDisplayName] = useState('')
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (!open) return
     setError('')
-    setPendingFile(null)
-    setPreviewUrl(null)
     setDisplayName(storedDisplayName ?? '')
   }, [open, storedDisplayName])
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > MAX_AVATAR_SIZE) {
-      setError('Ảnh tối đa 2MB')
-      return
-    }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Chỉ hỗ trợ JPG, PNG, WEBP')
-      return
-    }
-    setError('')
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setPendingFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
-  }
 
   async function save() {
     setSaving(true)
     setError('')
     try {
-      let newDisplayName = storedDisplayName ?? ''
-      let newAvatarUrl = storedAvatarUrl ?? ''
-      if (pendingFile) {
-        const res = await uploadAvatar(pendingFile)
-        newAvatarUrl = res.avatar_url ?? ''
-        newDisplayName = res.display_name ?? newDisplayName
-      }
-      if (displayName.trim() !== (storedDisplayName ?? '')) {
-        const res = await updateDisplayName(displayName.trim())
-        newDisplayName = res.display_name ?? ''
-        newAvatarUrl = res.avatar_url ?? newAvatarUrl
-      }
-      setProfile(newDisplayName, newAvatarUrl)
+      const res = await updateDisplayName(displayName.trim())
+      setProfile(res.display_name ?? '')
       onClose()
     } catch {
       setError('Lưu thất bại, thử lại sau')
@@ -79,7 +37,6 @@ export default function ProfileModal({ open, onClose }: Props) {
     }
   }
 
-  const avatarSrc = previewUrl ?? storedAvatarUrl ?? ''
   const initial = (displayName || username || '?').charAt(0).toUpperCase()
 
   return (
@@ -94,34 +51,10 @@ export default function ProfileModal({ open, onClose }: Props) {
     >
       <div className="space-y-4">
         <div className="flex items-center gap-4">
-          {avatarSrc ? (
-            <img
-              src={avatarSrc}
-              alt="Avatar"
-              className="h-20 w-20 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--primary-600)] text-2xl font-bold text-white">
-              {initial}
-            </div>
-          )}
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="rounded-xl border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              Chọn ảnh
-            </button>
-            <p className="mt-1 text-xs text-gray-400">JPG, PNG, WEBP — tối đa 2MB</p>
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--primary-600)] text-2xl font-bold text-white">
+            {initial}
           </div>
+          <p className="text-sm text-gray-500">Ảnh đại diện dùng chữ cái đầu của tên.</p>
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">

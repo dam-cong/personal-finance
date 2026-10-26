@@ -20,24 +20,19 @@ export function HouseholdFilledIcon({ className }: IconProps) {
   )
 }
 
-export function FamilyOutlineIcon({ className }: IconProps) {
+export function ChatOutlineIcon({ className }: IconProps) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className}>
-      <circle cx="9" cy="8" r="2.6" />
-      <path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" strokeLinecap="round" />
-      <circle cx="16" cy="9" r="2" />
-      <path d="M14.8 14.3c2.3.3 3.9 2 3.9 4.7" strokeLinecap="round" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinejoin="round" className={className}>
+      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v8a1.5 1.5 0 0 1-1.5 1.5H10l-6 4V5.5Z" />
+      <path d="M8 8.5h8M8 12h5" strokeLinecap="round" />
     </svg>
   )
 }
 
-export function FamilyFilledIcon({ className }: IconProps) {
+export function ChatFilledIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <circle cx="9" cy="8" r="2.6" />
-      <path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5Z" />
-      <circle cx="16" cy="9" r="2" />
-      <path d="M14.8 14.3c2.3.3 3.9 2 3.9 4.7h-3.1c0-1.9-.7-3.5-1.9-4.5.3-.1.66-.2 1-.2Z" />
+      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v8a1.5 1.5 0 0 1-1.5 1.5H10l-6 4V5.5Z" />
     </svg>
   )
 }

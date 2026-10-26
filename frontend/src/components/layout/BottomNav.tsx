@@ -4,20 +4,18 @@ import Avatar from '../ui/Avatar'
 import {
   HouseholdOutlineIcon,
   HouseholdFilledIcon,
-  FamilyOutlineIcon,
-  FamilyFilledIcon,
+  ChatOutlineIcon,
+  ChatFilledIcon,
   StatsOutlineIcon,
   StatsFilledIcon,
   PlusIcon,
 } from './BottomNavIcons'
 
 interface Props {
-  unreadCount: number
   onOpenAccount: () => void
   accountOpen: boolean
   onOpenInfo: () => void
   infoOpen: boolean
-  avatarUrl?: string | null
   nameLabel: string
 }
 
@@ -26,10 +24,9 @@ interface TabItemProps {
   label: string
   Icon: (props: { className?: string }) => ReactElement
   ActiveIcon: (props: { className?: string }) => ReactElement
-  showBadge?: boolean
 }
 
-function TabItem({ to, label, Icon, ActiveIcon, showBadge }: TabItemProps) {
+function TabItem({ to, label, Icon, ActiveIcon }: TabItemProps) {
   return (
     <NavLink
       to={to}
@@ -43,9 +40,6 @@ function TabItem({ to, label, Icon, ActiveIcon, showBadge }: TabItemProps) {
             ) : (
               <Icon className="h-6 w-6 text-gray-400" />
             )}
-            {showBadge && (
-              <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-            )}
           </span>
           <span className={`text-[10px] font-medium ${isActive ? 'text-[var(--primary-600)]' : 'text-gray-400'}`}>
             {label}
@@ -57,12 +51,10 @@ function TabItem({ to, label, Icon, ActiveIcon, showBadge }: TabItemProps) {
 }
 
 export default function BottomNav({
-  unreadCount,
   onOpenAccount,
   accountOpen,
   onOpenInfo,
   infoOpen,
-  avatarUrl,
   nameLabel,
 }: Props) {
   const navigate = useNavigate()
@@ -70,13 +62,7 @@ export default function BottomNav({
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 md:hidden">
       <div className="relative grid grid-cols-5 items-end rounded-t-3xl border-t border-gray-100 bg-white px-2 pt-1.5 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
-        <TabItem
-          to="/family-chat"
-          label="Gia đình"
-          Icon={FamilyOutlineIcon}
-          ActiveIcon={FamilyFilledIcon}
-          showBadge={unreadCount > 0}
-        />
+        <TabItem to="/chat" label="Chat" Icon={ChatOutlineIcon} ActiveIcon={ChatFilledIcon} />
         <button
           onClick={onOpenInfo}
           className="flex flex-col items-center justify-center gap-0.5 py-1.5 transition-transform active:scale-90"
@@ -97,7 +83,6 @@ export default function BottomNav({
           className="flex flex-col items-center justify-center gap-0.5 py-1.5 transition-transform active:scale-90"
         >
           <Avatar
-            avatarUrl={avatarUrl ?? undefined}
             label={nameLabel}
             className={`h-6 w-6 ${accountOpen ? 'ring-2 ring-[var(--primary-500)]' : 'ring-1 ring-gray-200'}`}
           />

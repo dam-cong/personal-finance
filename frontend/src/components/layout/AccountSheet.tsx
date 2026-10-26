@@ -2,21 +2,19 @@ import Avatar from '../ui/Avatar'
 
 interface Props {
   nameLabel: string
-  avatarUrl?: string | null
   onProfile: () => void
   onLogout: () => void
 }
 
 export default function AccountSheet({
   nameLabel,
-  avatarUrl,
   onProfile,
   onLogout,
 }: Props) {
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-3 px-3 pb-2">
-        <Avatar avatarUrl={avatarUrl ?? undefined} label={nameLabel} className="h-11 w-11" />
+        <Avatar label={nameLabel} className="h-11 w-11" />
         <p className="truncate text-sm font-semibold text-gray-900">{nameLabel}</p>
       </div>
       <button
