@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Chi tiêu">
+<meta name="apple-mobile-web-app-title" content="FamFin">
 <style>
   :root {
     --primary: #2563eb; --primary-dark: #1e3a8a;
@@ -101,11 +101,13 @@
            border-radius: 28px 28px 0 0; box-shadow: var(--shadow); overflow: hidden; }
   #main[data-tab="chat"] #chatPanel, #main[data-tab="dash"] #dashPanel { display: flex; }
 
-  /* điều hướng dưới (mobile) */
-  .bnav { flex: none; display: flex; gap: 6px; padding: 8px 12px calc(8px + var(--safe-b)); background: var(--card); border-top: 1px solid var(--line); }
-  .bnav button { flex: 1; border: 0; background: transparent; border-radius: 9999px; padding: 8px 6px; color: var(--muted);
-                 display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 700; }
-  .bnav button.active { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+  /* thanh gọn (chỉ mobile): chuyển tab + đổi người, thay cho header/footer */
+  .mbar { display: none; flex: none; align-items: center; gap: 10px; background: var(--card);
+          padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; }
+  .mtabs { flex: 1; display: flex; background: var(--soft); border-radius: 9999px; padding: 3px; gap: 2px; }
+  .mtabs button { flex: 1; border: 0; background: transparent; border-radius: 9999px; padding: 8px 4px; font-size: 14px; font-weight: 700; color: var(--muted); }
+  .mtabs button.active { background: var(--primary); color: #fff; box-shadow: 0 6px 14px -8px var(--primary); }
+  .mav { width: 38px; height: 38px; border: 0; font-size: 15px; }
 
   /* ---------- chat ---------- */
   .today { flex: none; display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; }
@@ -194,8 +196,17 @@
   #toast button { border: 0; background: transparent; color: #7dd3fc; font-weight: 800; padding: 4px 8px; }
 
   /* ---------- desktop: Chat + Dashboard cạnh nhau ---------- */
+  /* mobile: ẩn header + footer, dành toàn bộ diện tích cho nội dung */
+  @media (max-width: 1023px) {
+    .hero { display: none; }
+    .mbar { display: flex; }
+    #main { margin-top: 0; }
+    .panel { border-radius: 0; box-shadow: none; border-top: 1px solid var(--line); }
+    .composer { padding-bottom: calc(10px + var(--safe-b)); }
+    #dash { padding-bottom: calc(16px + var(--safe-b)); }
+    #toast { bottom: calc(80px + var(--safe-b)); }
+  }
   @media (min-width: 1024px) {
-    .bnav { display: none; }
     .hero { padding-bottom: 52px; }
     .hero .wrap { padding: 0 24px; }
     #main .wrap { padding: 0 24px 24px; }
@@ -235,6 +246,8 @@
     <div class="pick" id="pick"></div>
     <input id="inUser" class="hidden" placeholder="Nhập tên của bạn" maxlength="40">
     <button class="btn hidden" id="whoBtn" type="submit">Vào</button>
+    <button class="link" id="whoSettings" type="button">Cài đặt kết nối</button>
+    <button class="link hidden" id="whoCancel" type="button">Quay lại</button>
   </form>
 </div>
 
@@ -254,6 +267,15 @@
       </button>
     </div>
   </header>
+
+  <!-- Thanh gọn trên mobile: thay cho header + footer -->
+  <div class="mbar" id="mbar">
+    <div class="mtabs" role="tablist">
+      <button data-tab="chat" class="active" role="tab">Chat</button>
+      <button data-tab="dash" role="tab">Thống kê</button>
+    </div>
+    <button class="mav av" id="btnUserM" aria-label="Đổi người dùng / cài đặt"></button>
+  </div>
 
   <main id="main" data-tab="chat">
     <div class="wrap">
@@ -303,14 +325,6 @@
     </div>
   </main>
 
-  <nav class="bnav" aria-label="Điều hướng">
-    <button data-tab="chat" class="active">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Chat
-    </button>
-    <button data-tab="dash">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Thống kê
-    </button>
-  </nav>
 </div>
 
 <div id="toast" role="status"><span id="toastTxt"></span><button id="toastBtn" type="button">Hoàn tác</button></div>
@@ -435,7 +449,7 @@
     $('whoForm').classList.toggle('hidden', screen !== 'who');
     if (screen === 'app') {
       $('hHello').textContent = 'Chào ' + state.user + ' 👋';
-      $('btnUser').textContent = initial(state.user);
+      $('btnUser').textContent = $('btnUserM').textContent = initial(state.user);
       switchTab(state.tab);
       renderAll(true);
     }
@@ -449,7 +463,7 @@
   function switchTab(t) {
     state.tab = t;
     $('main').dataset.tab = t;
-    document.querySelectorAll('.bnav button').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === t); });
+    document.querySelectorAll('.mtabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === t); });
     if (t === 'chat') scrollChat();
   }
   function renderAll(scroll) { renderToday(); renderChat(scroll); renderDash(); }
@@ -711,9 +725,23 @@
   function autosize() { var t = $('inMsg'); t.style.height = '48px'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }
 
   /* ---------- Sự kiện ---------- */
-  document.querySelectorAll('.bnav button').forEach(function (b) {
+  document.querySelectorAll('.mtabs button').forEach(function (b) {
     b.addEventListener('click', function () { switchTab(b.dataset.tab); if (b.dataset.tab === 'dash') refresh(); });
   });
+  // Vuốt ngang để chuyển Chat <-> Thống kê (mobile); bỏ qua vùng tự cuộn ngang.
+  var sx = 0, sy = 0, skip = false;
+  $('main').addEventListener('touchstart', function (e) {
+    var t = e.touches[0]; sx = t.clientX; sy = t.clientY;
+    skip = !!e.target.closest('.quick, .chart, textarea, input');
+  }, { passive: true });
+  $('main').addEventListener('touchend', function (e) {
+    if (skip || window.innerWidth >= 1024) return;
+    var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) < 70 || Math.abs(dy) > 50) return;
+    var want = dx < 0 ? 'dash' : 'chat';
+    if (want !== state.tab) { switchTab(want); if (want === 'dash') refresh(); }
+  }, { passive: true });
+  $('btnUserM').addEventListener('click', function () { pickUser(); });
   document.querySelectorAll('#seg button').forEach(function (b) {
     b.addEventListener('click', function () {
       state.period = b.dataset.p; state.offset = 0; state.sel = -1;
@@ -731,6 +759,8 @@
   $('btnSettings').addEventListener('click', function () { openSetup(''); });
   $('btnUser').addEventListener('click', function () { pickUser(); });
   $('setupCancel').addEventListener('click', function () { show('app'); });
+  $('whoSettings').addEventListener('click', function () { openSetup(''); });
+  $('whoCancel').addEventListener('click', function () { show('app'); });
 
   $('setupForm').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -762,6 +792,8 @@
     $('inUser').classList.toggle('hidden', !manual);
     $('whoBtn').classList.toggle('hidden', !manual);
     $('inUser').value = state.user;
+    $('whoCancel').classList.toggle('hidden', !state.user);
+    $('whoSettings').classList.toggle('hidden', !state.url);
     show('who');
   }
   function enter(name) {

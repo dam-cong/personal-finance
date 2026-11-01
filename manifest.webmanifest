@@ -1,6 +1,6 @@
 {
   "name": "Personal Finance Chat",
-  "short_name": "Chi tiêu",
+  "short_name": "FamFin",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

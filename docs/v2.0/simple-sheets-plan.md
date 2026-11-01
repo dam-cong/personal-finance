@@ -253,3 +253,8 @@ trên cả website và mobile. Chỉ sửa `index.html`, không đổi API/Sheet
 mobile 390px (Chat, Dashboard) không tràn ngang; desktop 1280px hiện Chat và
 Dashboard cạnh nhau. Chưa kiểm tra chế độ tối, thao tác chạm thật trên iPhone
 và kết nối Google Sheet thật.
+
+**Mobile (< 1024px) — cập nhật:** ẩn header và thanh điều hướng dưới; thay
+bằng một thanh gọn trên cùng (chuyển Chat / Thống kê + nút người dùng). Vuốt
+ngang cũng chuyển tab. Đổi người / cài đặt kết nối: bấm nút tròn chữ cái đầu.
+Desktop giữ nguyên. Đã chụp ảnh kiểm tra 390px và 1280px.
