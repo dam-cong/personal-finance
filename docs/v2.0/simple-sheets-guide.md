@@ -69,6 +69,7 @@ Mở tab `config` và sửa cột `value`:
 | `slogan` | Khẩu hiệu (để trống = ẩn) | `Chi tiêu thông minh` |
 | `primary_color` | Màu chủ đạo, dạng `#RRGGBB` | `#2563EB` |
 | `users` | Tên những người nhập, cách nhau dấu phẩy | `Hiền,Lan,Nam` |
+| `monthly_budget` | Hạn mức chi tiêu **mỗi tháng** (VND, chỉ nhập số) | `10000000` |
 
 Sửa xong chỉ cần tải lại trang web của app, không cần deploy lại.
 
@@ -186,3 +187,25 @@ nút **Đổi cài đặt** ở góc trên.
   mới trên các thiết bị.
 - Dữ liệu nằm trong Google Sheet của bạn; có thể xem lại lịch sử sửa bằng
   **Tệp (File)** → **Lịch sử phiên bản (Version history)**.
+
+---
+
+## Thêm hạn mức chi tiêu hằng tháng (`monthly_budget`)
+
+Nếu Sheet của bạn tạo trước khi có tính năng này thì chưa có dòng này; tự thêm
+như sau (không cần sửa Apps Script, không cần deploy lại):
+
+1. Mở Google Sheet → chọn tab **`config`** ở dưới cùng.
+2. Tìm dòng trống đầu tiên bên dưới các dòng cấu hình (ví dụ dòng 7).
+3. Ô cột **A** gõ đúng: `monthly_budget` (chữ thường, có dấu gạch dưới).
+4. Ô cột **B** gõ số tiền hạn mức một tháng, chỉ gồm chữ số, ví dụ
+   `10000000` (10 triệu). Có thể gõ `10.000.000`; không gõ chữ `đ`, `k`
+   hay `triệu`.
+5. Tải lại trang web.
+
+Kết quả:
+- Tab **Chat**: dưới "Hôm nay đã chi" hiện *"Tháng này còn …"* (hoặc *"vượt …"*).
+- Tab **Thống kê**: thẻ **Hạn mức** có thanh tiến độ — xanh khi dưới 80%,
+  vàng từ 80%, đỏ khi vượt 100%. Xem theo **Quý** thì hạn mức nhân 3, theo
+  **Năm** nhân 12; xem theo **Tuần** không hiện hạn mức.
+- Muốn tắt: để trống ô B hoặc xoá dòng này.

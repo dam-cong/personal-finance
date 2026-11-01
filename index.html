@@ -186,6 +186,13 @@
   .cat .r1 .v { font-weight: 800; white-space: nowrap; }
   .cat .r1 .p { color: var(--muted); font-size: 12px; width: 36px; text-align: right; }
   .track { height: 7px; background: var(--soft); border-radius: 9999px; margin-top: 6px; overflow: hidden; }
+  .track.big { height: 12px; margin: 4px 0 8px; }
+  .track i.warn { background: #f59e0b; }
+  .track i.over { background: var(--danger); }
+  .bline { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+  .bline b { color: var(--text); }
+  .bline b.over { color: var(--danger); }
+  .today small + b + small { margin-top: 2px; }
   .track i { display: block; height: 100%; background: var(--primary); border-radius: 9999px; transition: width .4s; }
   .tx { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
   .tx:last-child { border-bottom: 0; }
@@ -291,7 +298,7 @@
       <div class="layout">
         <section class="panel" id="chatPanel" aria-label="Chat chi tiêu">
           <div class="today">
-            <div class="t"><small>Hôm nay đã chi</small><b id="todayAmt">0đ</b></div>
+            <div class="t"><small>Hôm nay đã chi</small><b id="todayAmt">0đ</b><small id="todayBud" class="hidden"></small></div>
             <div class="chip-count" id="todayCnt">0 khoản</div>
           </div>
           <div id="chatList"></div>
@@ -321,9 +328,14 @@
               <span class="delta" id="sDelta"></span>
               <div class="minis">
                 <div class="mini"><small>Giao dịch</small><b id="sCount">0</b></div>
-                <div class="mini"><small>Trung bình/ngày</small><b id="sAvg">0đ</b></div>
+                <div class="mini"><small>TB/ngày</small><b id="sAvg">0đ</b></div>
                 <div class="mini"><small>Lớn nhất</small><b id="sMax">0đ</b></div>
               </div>
+            </div>
+            <div class="sect hidden" id="budgetBox">
+              <h3><b id="bTitle">Hạn mức tháng</b> <span id="bPct"></span></h3>
+              <div class="track big"><i id="bFill"></i></div>
+              <div class="bline"><span id="bSpent"></span><b id="bLeft"></b></div>
             </div>
             <div class="sect"><h3>Chi tiêu theo thời gian <span id="chartCap"></span></h3><div class="chart" id="chart"></div></div>
             <div class="sect"><h3>Chi vào đâu?</h3><div class="cats" id="cats"></div></div>
@@ -491,11 +503,25 @@
   function timeLabel(ts) { var d = vn(ts); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
   function scrollChat() { var l = $('chatList'); l.style.scrollBehavior = 'auto'; l.scrollTop = l.scrollHeight; l.style.scrollBehavior = ''; }
 
+  // Hạn mức lấy từ config.monthly_budget (VND/tháng); quý = x3, năm = x12, tuần không áp dụng.
+  function budgetFor(period) {
+    var raw = String(state.config.monthly_budget || '').replace(/[.,\s]/g, '');
+    var m = /^\d+$/.test(raw) ? parseInt(raw, 10) : 0;
+    var mult = { month: 1, quarter: 3, year: 12 }[period] || 0;
+    return m * mult;
+  }
   function renderToday() {
     var today = dayLabel(Date.now()), sum = 0, n = 0;
     state.items.forEach(function (it) { if (dayLabel(Date.parse(it.created_at)) === today) { sum += it.amount; n++; } });
     $('todayAmt').textContent = money(sum);
     $('todayCnt').textContent = n + ' khoản';
+    var bud = budgetFor('month'), tb = $('todayBud');
+    tb.classList.toggle('hidden', !bud);
+    if (bud) {
+      var left = bud - collect(range('month', 0)).total;
+      tb.textContent = left >= 0 ? 'Tháng này còn ' + money(left) : 'Tháng này vượt ' + money(-left);
+      tb.style.color = left >= 0 ? '' : 'var(--danger)';
+    }
   }
   function bubble(it) {
     var mine = it.username === state.user;
@@ -661,6 +687,19 @@
     $('sAvg').textContent = money(Math.round(cur.total / days));
     $('sMax').textContent = money(cur.list.reduce(function (a, b) { return Math.max(a, b.amount); }, 0));
 
+    var bud = budgetFor(state.period);
+    $('budgetBox').classList.toggle('hidden', !bud);
+    if (bud) {
+      var bp = Math.round(cur.total / bud * 100), over = cur.total > bud;
+      $('bTitle').textContent = 'Hạn mức ' + { month: 'tháng', quarter: 'quý', year: 'năm' }[state.period];
+      $('bPct').textContent = bp + '%';
+      $('bFill').style.width = Math.min(bp, 100) + '%';
+      $('bFill').className = bp >= 100 ? 'over' : bp >= 80 ? 'warn' : '';
+      $('bSpent').textContent = 'Đã chi ' + money(cur.total) + ' / ' + money(bud);
+      $('bLeft').textContent = over ? 'Vượt ' + money(cur.total - bud) : 'Còn ' + money(bud - cur.total);
+      $('bLeft').className = over ? 'over' : '';
+    }
+
     var dl = $('sDelta');
     if (!prev.total) dl.textContent = cur.total ? 'Kỳ trước chưa có chi tiêu' : 'Chưa có chi tiêu trong kỳ';
     else {
@@ -724,7 +763,7 @@
   }
 
   /* ---------- Nhập nhanh ---------- */
-  ['☕ Cafe', '🍜 Ăn', '🛒 Đi chợ', '🛵 Xăng', '💡 Điện nước', '🎮 Giải trí'].forEach(function (label) {
+  ['🛒 Đi chợ', '🛍️ Shopee', '🛵 Xăng', '🎮 Giải trí'].forEach(function (label) {
     var b = h('button', '', label); b.type = 'button';
     b.addEventListener('click', function () {
       var word = label.replace(/^\S+\s/, '');

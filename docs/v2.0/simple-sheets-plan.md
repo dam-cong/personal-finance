@@ -258,3 +258,10 @@ và kết nối Google Sheet thật.
 bằng một thanh gọn trên cùng (chuyển Chat / Thống kê + nút người dùng). Vuốt
 ngang cũng chuyển tab. Đổi người / cài đặt kết nối: bấm nút tròn chữ cái đầu.
 Desktop giữ nguyên. Đã chụp ảnh kiểm tra 390px và 1280px.
+
+## 13. Hạn mức chi tiêu tháng (2026-11-01)
+
+Thêm key `monthly_budget` vào tab `config` (số VND/tháng, rỗng = tắt). App
+hiện thanh tiến độ ở Dashboard (tháng x1, quý x3, năm x12, tuần ẩn; xanh <
+80%, vàng ≥ 80%, đỏ khi vượt) và dòng "Tháng này còn …" ở tab Chat. Không
+đổi API/schema Sheet; `setup()` thêm dòng mẫu cho Sheet mới.

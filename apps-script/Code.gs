@@ -19,13 +19,14 @@ function setup() {
   var cfg = ss.getSheetByName(CFG_SHEET) || ss.insertSheet(CFG_SHEET);
   if (cfg.getLastRow() === 0) {
     cfg.getRange('A:B').setNumberFormat('@');
-    cfg.getRange(1, 1, 6, 2).setValues([
+    cfg.getRange(1, 1, 7, 2).setValues([
       ['key', 'value'],
       ['app_name', 'Personal Finance Chat'],
       ['household_name', 'Nhà của tôi'],
       ['slogan', ''],
       ['primary_color', '#2563EB'],
       ['users', 'Người 1,Người 2'],
+      ['monthly_budget', '10000000'],
     ]);
   }
 }
