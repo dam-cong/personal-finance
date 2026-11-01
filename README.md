@@ -15,6 +15,7 @@ xem thống kê ở tab Dashboard (tuần / tháng / quý / năm).
 ```
 index.html          giao diện (Chat + Dashboard)
 parser.js           phân tích "Cafe 45k" → nội dung + số tiền
+icons/, manifest.webmanifest  icon "Thêm vào Màn hình chính" + PWA
 apps-script/Code.gs mã dán vào Apps Script của Google Sheet
 tests/              test parser: node tests/parser.test.js
 vercel.json         cấu hình deploy static lên Vercel

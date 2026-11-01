@@ -226,3 +226,30 @@ Không chạy lệnh git nào khi chưa được cho phép.
 - Chat thêm/xoá và Dashboard 4 kỳ hoạt động với Sheet thật.
 - Checklist mục 9 pass.
 - README + trạng thái plan đã cập nhật (`Đã triển khai`).
+
+---
+
+## 12. Nâng cấp UI/UX (2026-11-01)
+
+Yêu cầu: giao diện hiện đại, thân thiện, có cá tính, thao tác gọn, dùng tốt
+trên cả website và mobile. Chỉ sửa `index.html`, không đổi API/Sheet.
+
+- **Bố cục:** mobile (< 1024px) = 1 panel + thanh điều hướng dưới (Chat /
+  Dashboard), có safe-area iPhone. Desktop (≥ 1024px) = Chat và Dashboard
+  hiện **cạnh nhau**, không cần chuyển tab.
+- **Phong cách:** header gradient theo `primary_color`, card bo `rounded-3xl`,
+  input/nút bo tròn, mascot heo đất, lời chào theo người dùng; tự theo chế độ
+  sáng/tối của thiết bị.
+- **Chat:** chip nhập nhanh (Cafe/Ăn/Chợ/Xăng...), tổng chi hôm nay, emoji
+  theo nhóm chi tiêu (suy từ nội dung), xoá có **Hoàn tác** 5 giây thay cho
+  hộp xác nhận.
+- **Dashboard:** thẻ tổng chi + so sánh kỳ trước, biểu đồ cột chạm để xem,
+  phân bổ theo nhóm chi tiêu, danh sách giao dịch.
+- **Mượt:** hiện ngay từ bản sao cục bộ, thanh tiến trình khi đang đồng bộ.
+- **Kiểm tra:** desktop ≥ 1024px và mobile < 400px không tràn ngang; sáng/tối;
+  `node tests/parser.test.js` vẫn pass.
+
+**Kết quả kiểm tra UI:** đã chụp ảnh bằng Edge headless với dữ liệu giả —
+mobile 390px (Chat, Dashboard) không tràn ngang; desktop 1280px hiện Chat và
+Dashboard cạnh nhau. Chưa kiểm tra chế độ tối, thao tác chạm thật trên iPhone
+và kết nối Google Sheet thật.
