@@ -46,13 +46,17 @@
   @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 
   /* ---------- cổng: kết nối / chọn người ---------- */
-  .gate { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px;
+  .gate { position: fixed; inset: 0; display: flex; justify-content: center; padding: 84px 20px 24px;
           background: linear-gradient(135deg, var(--primary), var(--primary-dark)); overflow-y: auto; }
   .gcard { width: 100%; max-width: 400px; background: var(--card); border-radius: 28px; box-shadow: var(--shadow);
            padding: 28px 24px 24px; display: flex; flex-direction: column; gap: 12px; text-align: center; }
   .gcard img { width: 84px; height: 84px; margin: -64px auto 0; border-radius: 24px; background: #fff; padding: 6px;
                box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .35); }
-  .gcard { margin-top: 44px; }
+  .gcard { margin: auto 0; }
+  .colorrow { display: flex; gap: 10px; align-items: center; }
+  .colorrow input[type=color] { width: 52px; height: 48px; flex: none; padding: 4px; border-radius: 16px; cursor: pointer; }
+  .colorrow input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+  .colorrow input[type=color]::-webkit-color-swatch { border: 0; border-radius: 12px; }
   .gcard h2 { margin: 6px 0 0; font-size: 22px; }
   .gcard p { margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.45; }
   .field { text-align: left; display: flex; flex-direction: column; gap: 6px; }
@@ -251,6 +255,27 @@
     <button class="btn" id="setupBtn" type="submit">Kết nối</button>
     <button class="link hidden" id="setupCancel" type="button">Huỷ</button>
   </form>
+  <form class="gcard hidden" id="cfgForm">
+    <img src="icons/icon-192.png" alt="">
+    <h2>Cấu hình</h2>
+    <p>Lưu vào tab <b>config</b> trong Google Sheet, áp dụng cho cả nhà.</p>
+    <div class="field"><label for="inApp">Tên ứng dụng</label>
+      <input id="inApp" maxlength="60" placeholder="FamFin"></div>
+    <div class="field"><label for="inHouse">Tên nhà</label>
+      <input id="inHouse" maxlength="60" placeholder="Nhà của tôi"></div>
+    <div class="field"><label for="inSlogan">Khẩu hiệu</label>
+      <input id="inSlogan" maxlength="120" placeholder="Để trống = ẩn"></div>
+    <div class="field"><label for="inColorTxt">Màu chủ đạo</label>
+      <div class="colorrow"><input id="inColor" type="color" aria-label="Chọn màu"><input id="inColorTxt" maxlength="7" placeholder="#2563EB" autocapitalize="off"></div></div>
+    <div class="field"><label for="inUsers">Người dùng (cách nhau dấu phẩy)</label>
+      <input id="inUsers" maxlength="150" placeholder="Hiền,Lan,Nam"></div>
+    <div class="field"><label for="inBudget">Hạn mức chi tiêu mỗi tháng (đ)</label>
+      <input id="inBudget" inputmode="numeric" maxlength="15" placeholder="10000000 — để trống = tắt"></div>
+    <div class="err" id="cfgErr" role="alert"></div>
+    <button class="btn" id="cfgBtn" type="submit">Lưu cấu hình</button>
+    <button class="link" id="cfgCancel" type="button">Huỷ</button>
+    <button class="link" id="cfgConn" type="button">Đổi kết nối Google Sheet</button>
+  </form>
   <form class="gcard hidden" id="whoForm">
     <img src="icons/icon-192.png" alt="">
     <h2>Bạn là ai?</h2>
@@ -258,6 +283,7 @@
     <div class="pick" id="pick"></div>
     <input id="inUser" class="hidden" placeholder="Nhập tên của bạn" maxlength="40">
     <button class="btn hidden" id="whoBtn" type="submit">Vào</button>
+    <button class="link" id="whoConfig" type="button">Cấu hình nhà (tên, màu, hạn mức…)</button>
     <button class="link" id="whoSettings" type="button">Cài đặt kết nối</button>
     <button class="link hidden" id="whoCancel" type="button">Quay lại</button>
   </form>
@@ -469,6 +495,7 @@
     $('shell').classList.toggle('hidden', gate);
     $('setupForm').classList.toggle('hidden', screen !== 'setup');
     $('whoForm').classList.toggle('hidden', screen !== 'who');
+    $('cfgForm').classList.toggle('hidden', screen !== 'cfg');
     if (screen === 'app') {
       $('hHello').textContent = 'Chào ' + state.user + ' 👋';
       $('btnUser').textContent = $('btnUserM').textContent = initial(state.user);
@@ -477,6 +504,18 @@
     }
   }
   function connected() { return !!(store.get('pf_url') && state.user); }
+  var HEX = /^#[0-9a-fA-F]{6}$/;
+  function openConfig() {
+    var c = state.config;
+    $('inApp').value = c.app_name || ''; $('inHouse').value = c.household_name || '';
+    $('inSlogan').value = c.slogan || ''; $('inUsers').value = c.users || '';
+    $('inBudget').value = String(c.monthly_budget || '').replace(/[.,\s]/g, '');
+    var col = (c.primary_color || '').trim();
+    $('inColorTxt').value = HEX.test(col) ? col : '';
+    $('inColor').value = HEX.test(col) ? col : '#2563eb';
+    $('cfgErr').textContent = '';
+    show('cfg');
+  }
   function openSetup(msg) {
     $('inUrl').value = state.url; $('inToken').value = ''; $('setupErr').textContent = msg || '';
     $('setupCancel').classList.toggle('hidden', !connected());
@@ -805,7 +844,35 @@
   $('inMsg').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
   });
-  $('btnSettings').addEventListener('click', function () { openSetup(''); });
+  $('btnSettings').addEventListener('click', openConfig);
+  $('whoConfig').addEventListener('click', openConfig);
+  $('cfgCancel').addEventListener('click', function () { show('app'); });
+  $('cfgConn').addEventListener('click', function () { openSetup(''); });
+  $('inColor').addEventListener('input', function () { $('inColorTxt').value = this.value; });
+  $('inColorTxt').addEventListener('input', function () { if (HEX.test(this.value)) $('inColor').value = this.value; });
+  $('cfgForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var color = $('inColorTxt').value.trim();
+    var budget = $('inBudget').value.replace(/[.,\s]/g, '');
+    if (color && !HEX.test(color)) { $('cfgErr').textContent = 'Màu phải có dạng #RRGGBB, ví dụ #2563EB.'; return; }
+    if (budget && !/^\d+$/.test(budget)) { $('cfgErr').textContent = 'Hạn mức chỉ gồm chữ số.'; return; }
+    var values = {
+      app_name: $('inApp').value, household_name: $('inHouse').value, slogan: $('inSlogan').value,
+      primary_color: color, users: $('inUsers').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean).join(','),
+      monthly_budget: budget
+    };
+    $('cfgErr').textContent = ''; $('cfgBtn').disabled = true; $('cfgBtn').textContent = 'Đang lưu…';
+    call('POST', { action: 'setconfig', values: values }).then(function (d) {
+      state.config = d.config || state.config;
+      applyConfig(); saveCache(); show('app');
+    }).catch(function (err) {
+      var m = err.message;
+      if (m === 'unknown_action') m = 'Apps Script chưa được cập nhật. Hãy dán Code.gs mới và deploy phiên bản mới.';
+      else if (m.indexOf('invalid_') === 0) m = 'Giá trị không hợp lệ: ' + m.slice(8);
+      else if (m === 'Failed to fetch') m = 'Mất kết nối mạng, thử lại sau.';
+      $('cfgErr').textContent = m;
+    }).then(function () { $('cfgBtn').disabled = false; $('cfgBtn').textContent = 'Lưu cấu hình'; });
+  });
   $('btnUser').addEventListener('click', function () { pickUser(); });
   $('setupCancel').addEventListener('click', function () { show('app'); });
   $('whoSettings').addEventListener('click', function () { openSetup(''); });

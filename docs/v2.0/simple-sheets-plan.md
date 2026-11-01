@@ -265,3 +265,20 @@ Thêm key `monthly_budget` vào tab `config` (số VND/tháng, rỗng = tắt). 
 hiện thanh tiến độ ở Dashboard (tháng x1, quý x3, năm x12, tuần ẩn; xanh <
 80%, vàng ≥ 80%, đỏ khi vượt) và dòng "Tháng này còn …" ở tab Chat. Không
 đổi API/schema Sheet; `setup()` thêm dòng mẫu cho Sheet mới.
+
+## 14. Màn cấu hình (2026-11-01)
+
+Màn **Cấu hình** trong app để sửa các tham số của tab `config` mà không phải
+mở Google Sheet: `app_name`, `household_name`, `slogan`, `primary_color`,
+`users`, `monthly_budget`.
+
+- **API mới:** `POST {action:"setconfig", values:{key:value,...}}` — chỉ nhận
+  các key trong danh sách trên; kiểm tra `primary_color` (`#RRGGBB` hoặc rỗng),
+  `monthly_budget` (chỉ số hoặc rỗng), độ dài ≤ 200; cập nhật dòng có sẵn hoặc
+  thêm dòng mới; trả về `config` mới. Key lạ trong Sheet được giữ nguyên.
+- **UI:** nút bánh răng (desktop) và nút người dùng → "Cấu hình" (mobile).
+  Có bộ chọn màu, lưu xong áp dụng ngay.
+- **Lưu ý triển khai:** phải **deploy bản mới** của `Code.gs` (Manage
+  deployments → New version), nếu không app báo "cần cập nhật Apps Script".
+- **Kiểm tra:** sửa từng trường → Sheet đổi đúng dòng; màu/hạn mức sai bị chặn;
+  tải lại vẫn giữ; thiếu key thì tự thêm dòng.

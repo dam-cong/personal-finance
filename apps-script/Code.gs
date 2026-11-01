@@ -55,6 +55,7 @@ function handle_(p) {
     if (p.action === 'list') return json_({ ok: true, config: readConfig_(), items: readItems_() });
     if (p.action === 'add') return json_(add_(p));
     if (p.action === 'delete') return json_(remove_(p));
+    if (p.action === 'setconfig') return json_(setConfig_(p));
     return json_({ ok: false, error: 'unknown_action' });
   } catch (err) {
     return json_({ ok: false, error: 'server_error' });
@@ -86,6 +87,38 @@ function readConfig_() {
     if (k) out[k] = String(r[1]);
   });
   return out;
+}
+
+var CFG_KEYS = ['app_name', 'household_name', 'slogan', 'primary_color', 'users', 'monthly_budget'];
+
+// Cập nhật cấu hình: chỉ nhận key trong CFG_KEYS, kiểm tra giá trị; thiếu dòng thì thêm mới.
+function setConfig_(p) {
+  var vals = p.values || {};
+  var clean = {};
+  for (var i = 0; i < CFG_KEYS.length; i++) {
+    var k = CFG_KEYS[i];
+    if (!Object.prototype.hasOwnProperty.call(vals, k)) continue;
+    var v = String(vals[k] == null ? '' : vals[k]).trim();
+    if (v.length > 200) return { ok: false, error: 'invalid_' + k };
+    if (k === 'primary_color' && v !== '' && !/^#[0-9a-fA-F]{6}$/.test(v)) return { ok: false, error: 'invalid_' + k };
+    if (k === 'monthly_budget') {
+      v = v.replace(/[.,\s]/g, '');
+      if (!/^\d*$/.test(v)) return { ok: false, error: 'invalid_' + k };
+    }
+    clean[k] = v;
+  }
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CFG_SHEET);
+  if (!sh) { setup(); sh = ss.getSheetByName(CFG_SHEET); }
+  var rows = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues() : [];
+  var rowOf = {};
+  rows.forEach(function (r, idx) { rowOf[String(r[0]).trim()] = idx + 2; });
+  Object.keys(clean).forEach(function (k) {
+    var row = rowOf[k];
+    if (!row) { row = sh.getLastRow() + 1; sh.getRange(row, 1, 1, 2).setNumberFormats([['@', '@']]); sh.getRange(row, 1).setValue(k); }
+    sh.getRange(row, 2).setNumberFormat('@').setValue(clean[k]);
+  });
+  return { ok: true, config: readConfig_() };
 }
 
 function readItems_() {

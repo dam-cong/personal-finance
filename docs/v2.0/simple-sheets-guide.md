@@ -209,3 +209,26 @@ Kết quả:
   vàng từ 80%, đỏ khi vượt 100%. Xem theo **Quý** thì hạn mức nhân 3, theo
   **Năm** nhân 12; xem theo **Tuần** không hiện hạn mức.
 - Muốn tắt: để trống ô B hoặc xoá dòng này.
+
+---
+
+## Sửa cấu hình ngay trong app
+
+Từ khi có màn **Cấu hình**, bạn không cần mở Google Sheet để sửa tên nhà,
+khẩu hiệu, màu, người dùng, hạn mức:
+
+- **Desktop:** bấm biểu tượng bánh răng ở góc phải header.
+- **Mobile:** bấm nút tròn chữ cái đầu → **Cấu hình nhà**.
+- Sửa xong bấm **Lưu cấu hình**; thay đổi được ghi vào tab `config` và áp
+  dụng ngay.
+
+**Bắt buộc làm một lần:** mã `Code.gs` đã thêm hành động ghi cấu hình, nên cần
+cập nhật Apps Script:
+
+1. Copy toàn bộ [`apps-script/Code.gs`](../../apps-script/Code.gs) mới, dán đè
+   vào trình soạn Apps Script, bấm **Lưu**.
+2. **Triển khai (Deploy)** → **Quản lý bản triển khai (Manage deployments)** →
+   biểu tượng bút chì → **Phiên bản (Version)**: **Phiên bản mới (New
+   version)** → **Triển khai (Deploy)**. URL giữ nguyên.
+
+Nếu chưa làm, bấm Lưu sẽ báo "Apps Script chưa được cập nhật".
