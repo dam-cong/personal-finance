@@ -102,10 +102,15 @@
   #main[data-tab="chat"] #chatPanel, #main[data-tab="dash"] #dashPanel { display: flex; }
 
   /* thanh gọn (chỉ mobile): chuyển tab + đổi người, thay cho header/footer */
-  .mbar { display: none; flex: none; align-items: center; gap: 10px; background: var(--card);
+  .mbar { display: none; flex: none; flex-direction: column; gap: 8px; background: var(--card);
           padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; }
-  .mtabs { flex: 1; display: flex; background: var(--soft); border-radius: 9999px; padding: 3px; gap: 2px; }
-  .mtabs button { flex: 1; border: 0; background: transparent; border-radius: 9999px; padding: 8px 4px; font-size: 14px; font-weight: 700; color: var(--muted); }
+  .mtop { display: flex; align-items: center; gap: 10px; }
+  .mlogo { width: 42px; height: 42px; border-radius: 13px; background: #fff; padding: 3px; flex: none; border: 1px solid var(--line); }
+  .mbrand { flex: 1; min-width: 0; line-height: 1.25; }
+  .mbrand b { display: block; font-size: 16px; word-break: break-word; }
+  .mbrand small { display: block; font-size: 12px; color: var(--muted); word-break: break-word; }
+  .mtabs { flex: none; width: 100%; display: flex; background: var(--soft); border-radius: 9999px; padding: 3px; gap: 2px; }
+  .mtabs button { flex: 1; border: 0; background: transparent; border-radius: 9999px; padding: 8px 12px; font-size: 14px; white-space: nowrap; font-weight: 700; color: var(--muted); }
   .mtabs button.active { background: var(--primary); color: #fff; box-shadow: 0 6px 14px -8px var(--primary); }
   .mav { width: 38px; height: 38px; border: 0; font-size: 15px; }
 
@@ -270,11 +275,15 @@
 
   <!-- Thanh gọn trên mobile: thay cho header + footer -->
   <div class="mbar" id="mbar">
+    <div class="mtop">
+      <img class="mlogo" src="icons/icon-192.png" alt="">
+      <div class="mbrand"><b id="mName"></b><small id="mSlogan" class="hidden"></small></div>
+      <button class="mav av" id="btnUserM" aria-label="Đổi người dùng / cài đặt"></button>
+    </div>
     <div class="mtabs" role="tablist">
       <button data-tab="chat" class="active" role="tab">Chat</button>
       <button data-tab="dash" role="tab">Thống kê</button>
     </div>
-    <button class="mav av" id="btnUserM" aria-label="Đổi người dùng / cài đặt"></button>
   </div>
 
   <main id="main" data-tab="chat">
@@ -419,10 +428,11 @@
     var c = state.config;
     var name = (c.app_name || '').trim() || 'Personal Finance Chat';
     document.title = name;
-    $('hName').textContent = (c.household_name || '').trim() || name;
+    $('hName').textContent = $('mName').textContent = (c.household_name || '').trim() || name;
     var slogan = (c.slogan || '').trim();
-    $('hSlogan').textContent = slogan;
+    $('hSlogan').textContent = $('mSlogan').textContent = slogan;
     $('hSlogan').classList.toggle('hidden', !slogan);
+    $('mSlogan').classList.toggle('hidden', !slogan);
     var color = (c.primary_color || '').trim();
     var root = document.documentElement.style;
     var meta = document.querySelector('meta[name="theme-color"]');
