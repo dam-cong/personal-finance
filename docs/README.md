@@ -5,12 +5,12 @@ Tài liệu được lưu theo từng version để tránh lẫn giữa bản đ
 
 ## Version hiện tại
 
-**Version 2.0 — đang triển khai (Phase 1 code xong):** Vercel Services +
-Google Sheets, bỏ chat gia đình và ảnh.
+**Version 2.0 — bản đơn giản (code xong, chờ verify):** HTML tĩnh trên
+Vercel + Google Apps Script + Google Sheet; chỉ còn Chat và Dashboard.
 
 - [Mục lục Version 2.0](v2.0/README.md)
-- [Kế hoạch triển khai theo phase](v2.0/implementation-plan.md)
-- [Thiết kế chi tiết Vercel + Google Sheets](v2.0/vercel-google-sheets-plan.md)
+- [Kế hoạch bản đơn giản](v2.0/simple-sheets-plan.md)
+- [Hướng dẫn cài đặt 4 bước](v2.0/simple-sheets-guide.md)
 
 ## Version đã đóng băng
 
@@ -23,7 +23,7 @@ Google Sheets, bỏ chat gia đình và ảnh.
 | Version | Ngày | Trạng thái | Phạm vi chính |
 |---|---|---|---|
 | 1.0 | 2026-10-25 | Đóng băng | Tự host Docker, JSON store, chat gia đình, ảnh |
-| 2.0 | 2026-10-25 | Kế hoạch sẵn sàng | Vercel Services, Google Sheets, bỏ chat gia đình/ảnh |
+| 2.0 | 2026-11-01 | Đang triển khai | HTML tĩnh + Apps Script + Google Sheet; chỉ Chat và Dashboard |
 
 ## Quy ước
 

@@ -1,8 +1,13 @@
-> **Trạng thái:** Đang triển khai — code xong trong `simple/` (`index.html`,
-> `parser.js`, `Code.gs`); parser pass 23 case bằng `node simple/parser.test.js`.
-> **Chưa verify** với Google Sheet thật; **chưa xoá** `frontend/` cũ (chờ xin
-> phép). Sai khác so với plan: code đặt ở `simple/` thay vì `frontend/` và
-> `apps-script/` cho tới khi được phép xoá `frontend/`.
+> **Trạng thái:** Đang triển khai — code xong và đã đóng gói cho Vercel
+> (static từ gốc repo). Parser pass 23 case (`node tests/parser.test.js`).
+> **Chưa verify** với Google Sheet thật.
+>
+> Sai khác so với plan: `index.html` + `parser.js` đặt ở **gốc repo**,
+> `Code.gs` ở `apps-script/`, test ở `tests/`. Đã xoá (được người dùng cho
+> phép): `frontend/`, `backend/`, `nginx/`, `bin/`, `image/`, `Dockerfile`,
+> `docker-compose.yml`, `.dockerignore`, `deploy.sh`, `Makefile`, `data/`,
+> các plan v2.0 cũ (dữ liệu 1.0 đã có backup ngoài repo). Hướng Vercel Services + Go (các plan khác trong thư
+> mục này) **không còn áp dụng**.
 
 # Bản đơn giản: 1 file HTML + Google Apps Script + Google Sheet
 
@@ -11,7 +16,7 @@
 ## 1. Context
 
 Hướng Vercel Services + Go + SheetsStore (xem
-[`implementation-plan.md`](implementation-plan.md)) quá nặng so với nhu cầu.
+các plan Vercel Services + Go cũ (đã xoá)) quá nặng so với nhu cầu.
 Nhu cầu thực tế chỉ có 2 chức năng:
 
 1. **Chat** nhập chi tiêu hằng ngày (`Cafe 45k`).

@@ -1,5 +1,5 @@
-// Chạy: node simple/parser.test.js — đối chiếu với parser_test.go
-const { parse } = require('./parser');
+// Chạy: node tests/parser.test.js — đối chiếu với parser_test.go
+const { parse } = require('../parser');
 
 const ok = [
   ['Cafe Highland 45000', 'Cafe Highland', 45000],

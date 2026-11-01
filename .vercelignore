@@ -1,8 +1,11 @@
-backend/data/
-backend/server.log
-data/
-bin/
-frontend/dist/
+.claude/
+.git/
+apps-script/
+tests/
+docs/
+simple/
+CLAUDE.md
+README.md
 .env
 .env.*
 *.log

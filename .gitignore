@@ -1,11 +1,13 @@
-# Go
-backend/data/
-*.tmp
-bin/
-
 # Node
 node_modules/
-frontend/dist/
+
+# Vercel
+.vercel/
 
 # Env
 .env
+.env.*
+
+# Log / tạm
+*.log
+*.tmp

@@ -6,7 +6,7 @@
 >
 > Kế hoạch chi tiết: [`simple-sheets-plan.md`](simple-sheets-plan.md)
 
-Bạn cần: một tài khoản Google, và 3 file trong thư mục `simple/`:
+Bạn cần: một tài khoản Google, và 3 file trong repo:
 `Code.gs`, `index.html`, `parser.js`.
 
 ---
@@ -28,7 +28,7 @@ Bạn cần: một tài khoản Google, và 3 file trong thư mục `simple/`:
 
 ### 1.3 Dán mã
 
-1. Mở file [`simple/Code.gs`](../../simple/Code.gs) trong repo, copy **toàn bộ**.
+1. Mở file [`apps-script/Code.gs`](../../apps-script/Code.gs) trong repo, copy **toàn bộ**.
 2. Trong trình soạn Apps Script, bấm vào file `Code.gs` ở cột bên trái, chọn
    hết mã mẫu (Ctrl+A) và dán đè (Ctrl+V).
 3. Bấm biểu tượng đĩa mềm **Lưu dự án (Save project)** (hoặc Ctrl+S).
@@ -136,10 +136,10 @@ URL?action=list&token=MA_TOKEN
 Chọn một cách:
 
 - **Chạy trên máy (nhanh nhất để thử):** mở terminal tại thư mục dự án và chạy
-  `npx serve simple`, rồi mở địa chỉ hiện ra (thường `http://localhost:3000`).
-  Hoặc mở thẳng file `simple/index.html` bằng trình duyệt (kèm `parser.js`
+  `npx serve .`, rồi mở địa chỉ hiện ra (thường `http://localhost:3000`).
+  Hoặc mở thẳng file `index.html` bằng trình duyệt (kèm `parser.js`
   cùng thư mục).
-- **Đưa lên mạng (để cả nhà dùng):** tải thư mục `simple/` lên một host tĩnh
+- **Đưa lên mạng (để cả nhà dùng):** đẩy repo lên Vercel (xem `README.md`) hoặc host tĩnh khác
   (Vercel, GitHub Pages, Netlify…). Hai file `index.html` và `parser.js` phải
   nằm cùng thư mục.
 

@@ -189,11 +189,30 @@
       return d;
     });
   }
+  // Lưu bản sao cục bộ để lần mở sau hiện ngay, không phải chờ Apps Script (1–2 giây).
+  function saveCache() {
+    store.set('pf_cache', JSON.stringify({
+      config: state.config,
+      items: state.items.filter(function (x) { return !x.pending; })
+    }));
+  }
   function load() {
     return call('GET').then(function (d) {
+      var pending = state.items.filter(function (x) { return x.pending; });
       state.config = d.config || {};
-      state.items = d.items || [];
+      state.items = (d.items || []).concat(pending);
       applyConfig();
+      saveCache();
+    });
+  }
+  // Làm mới âm thầm: giao diện giữ nguyên, có dữ liệu mới thì vẽ lại tab đang mở.
+  function refresh() {
+    return load().then(function () {
+      if (state.tab === 'chat') renderChat(false); else renderDash();
+    }).catch(function (err) {
+      if (err.message === 'Sai mã chung') {
+        $('setupErr').textContent = err.message; $('inUrl').value = state.url; show('setup');
+      }
     });
   }
 
@@ -299,6 +318,7 @@
     renderChat(true);
     call('POST', { action: 'add', username: state.user, content: p.content, amount: p.amount }).then(function (d) {
       state.items[state.items.indexOf(temp)] = d.item;
+      saveCache();
       renderChat(true);
       botNote('Đã ghi: ' + d.item.content + ' — ' + money(d.item.amount), false);
     }).catch(function (e) {
@@ -311,6 +331,7 @@
     if (!confirm('Xoá "' + it.content + ' — ' + money(it.amount) + '"?')) return;
     call('POST', { action: 'delete', id: it.id }).then(function () {
       state.items = state.items.filter(function (x) { return x.id !== it.id; });
+      saveCache();
       renderChat(false);
     }).catch(function (e) { botNote('Xoá thất bại: ' + e.message, true); });
   }
@@ -407,7 +428,7 @@
   document.querySelectorAll('.tab').forEach(function (b) {
     b.addEventListener('click', function () {
       switchTab(b.dataset.tab);
-      if (b.dataset.tab === 'dash') load().then(renderDash).catch(function () {});
+      refresh();
     });
   });
   document.querySelectorAll('#periods button').forEach(function (b) {
@@ -463,9 +484,17 @@
   });
 
   /* ---------- Khởi động ---------- */
+  function cachedData() {
+    try { var c = JSON.parse(store.get('pf_cache') || 'null'); return c && Array.isArray(c.items) ? c : null; } catch (e) { return null; }
+  }
   state.url = store.get('pf_url'); state.token = store.get('pf_token'); state.user = store.get('pf_user');
   if (!state.url || !state.token) {
     show('setup');
+  } else if (state.user && cachedData()) {
+    // Có bản sao cục bộ: vào app ngay, tải mới ở nền.
+    var c = cachedData();
+    state.config = c.config || {}; state.items = c.items || [];
+    applyConfig(); show('app'); refresh();
   } else {
     $('chatList').appendChild(h('div', 'empty', 'Đang tải...'));
     load().then(function () { if (state.user) show('app'); else pickUser(); })
