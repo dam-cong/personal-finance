@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Personal Finance Chat</title>
+<style>
+  :root { --primary: #2563eb; --primary-dark: #1e3a8a; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #0f172a; overflow-x: hidden;
+  }
+  .hidden { display: none !important; }
+  #app { height: 100%; display: flex; flex-direction: column; max-width: 960px; margin: 0 auto; }
+  header { color: #fff; padding: 14px 16px 8px; display: flex; align-items: center; gap: 12px; }
+  header .titles { flex: 1; min-width: 0; }
+  header h1 { font-size: 18px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header p { margin: 2px 0 0; font-size: 12px; opacity: .85; }
+  .tabs { display: flex; gap: 8px; padding: 4px 16px 12px; }
+  .tab { flex: 1; border: 0; border-radius: 9999px; padding: 10px; font-size: 14px; font-weight: 600;
+         background: rgba(255,255,255,.18); color: #fff; cursor: pointer; }
+  .tab.active { background: #fff; color: var(--primary); }
+  .card { background: #fff; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.35); }
+  main { flex: 1; min-height: 0; padding: 0 12px 12px; display: flex; }
+  .panel { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+  .btn { border: 0; border-radius: 9999px; background: var(--primary); color: #fff; padding: 12px 20px;
+         font-size: 15px; font-weight: 600; cursor: pointer; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.ghost { background: transparent; color: #fff; padding: 6px 12px; font-size: 13px; border: 1px solid rgba(255,255,255,.5); }
+  input, select, textarea { width: 100%; border: 0; border-radius: 9999px; background: #f1f5f9; padding: 12px 18px;
+         font: inherit; font-size: 15px; outline: none; }
+  input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 2px var(--primary); }
+
+  /* màn hình cài đặt */
+  .center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .form { width: 100%; max-width: 400px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .form h2 { margin: 0 0 4px; font-size: 20px; }
+  .form label { font-size: 13px; color: #475569; margin-bottom: -6px; padding-left: 8px; }
+  .err { color: #dc2626; font-size: 13px; min-height: 1em; }
+
+  /* chat */
+  #chatList { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .day { align-self: center; font-size: 12px; color: #64748b; background: #f1f5f9; border-radius: 9999px; padding: 2px 12px; margin: 6px 0; }
+  .msg { max-width: 82%; padding: 10px 14px; border-radius: 18px; background: #f1f5f9; word-break: break-word; }
+  .msg.mine { align-self: flex-end; background: var(--primary); color: #fff; }
+  .msg.bot { align-self: flex-start; background: #ecfdf5; color: #065f46; }
+  .msg.err { background: #fef2f2; color: #b91c1c; }
+  .msg .who { font-size: 11px; opacity: .75; margin-bottom: 2px; }
+  .msg .row { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
+  .msg .amt { font-weight: 700; white-space: nowrap; }
+  .msg .meta { font-size: 11px; opacity: .7; margin-top: 2px; display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+  .del { border: 0; background: transparent; color: inherit; opacity: .8; cursor: pointer; font-size: 13px; padding: 0; }
+  .pending { opacity: .6; }
+  .composer { display: flex; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #e2e8f0; }
+  .composer textarea { border-radius: 24px; resize: none; height: 46px; padding: 12px 18px; }
+
+  /* dashboard */
+  #dash { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .periods { display: flex; gap: 6px; flex-wrap: wrap; }
+  .periods button { flex: 1; min-width: 60px; border: 0; border-radius: 9999px; padding: 8px 10px; background: #f1f5f9; cursor: pointer; font-weight: 600; color: #334155; }
+  .periods button.active { background: var(--primary); color: #fff; }
+  .nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .nav button { border: 0; background: #f1f5f9; border-radius: 9999px; width: 40px; height: 40px; cursor: pointer; font-size: 16px; }
+  .nav .label { font-weight: 700; text-align: center; flex: 1; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .stat { background: #f8fafc; border-radius: 20px; padding: 12px 14px; }
+  .stat small { color: #64748b; display: block; font-size: 12px; }
+  .stat b { font-size: 18px; word-break: break-word; }
+  .chart { display: flex; align-items: flex-end; gap: 2px; height: 160px; padding-top: 8px; }
+  .bar { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+  .bar i { display: block; width: 100%; background: var(--primary); border-radius: 6px 6px 0 0; min-height: 0; }
+  .bar span { font-size: 10px; color: #64748b; margin-top: 4px; height: 12px; white-space: nowrap; }
+  .tx { display: flex; justify-content: space-between; gap: 10px; padding: 10px 4px; border-bottom: 1px solid #f1f5f9; }
+  .tx .c { min-width: 0; word-break: break-word; }
+  .tx .c small { display: block; color: #64748b; font-size: 12px; }
+  .tx b { white-space: nowrap; }
+  .empty { color: #94a3b8; text-align: center; padding: 20px; }
+  h3 { margin: 0; font-size: 15px; }
+  @media (min-width: 1024px) { main { padding: 0 16px 16px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="titles"><h1 id="hName">Personal Finance Chat</h1><p id="hSlogan" class="hidden"></p></div>
+    <button class="btn ghost hidden" id="btnSettings">Đổi cài đặt</button>
+  </header>
+
+  <!-- Cài đặt kết nối -->
+  <div id="setup" class="center hidden">
+    <form class="card form" id="setupForm">
+      <h2>Kết nối Google Sheet</h2>
+      <label for="inUrl">URL Apps Script (Web app)</label>
+      <input id="inUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" required>
+      <label for="inToken">Mã chung</label>
+      <input id="inToken" type="password" autocomplete="off" required>
+      <div class="err" id="setupErr"></div>
+      <button class="btn" id="setupBtn" type="submit">Kết nối</button>
+    </form>
+  </div>
+
+  <!-- Chọn người nhập -->
+  <div id="who" class="center hidden">
+    <form class="card form" id="whoForm">
+      <h2>Bạn là ai?</h2>
+      <select id="selUser" class="hidden"></select>
+      <input id="inUser" placeholder="Nhập tên của bạn" maxlength="40">
+      <button class="btn" type="submit">Vào</button>
+    </form>
+  </div>
+
+  <div id="tabsWrap" class="hidden">
+    <div class="tabs">
+      <button class="tab active" data-tab="chat">Chat</button>
+      <button class="tab" data-tab="dash">Dashboard</button>
+    </div>
+  </div>
+
+  <main id="main" class="hidden">
+    <section id="chatPanel" class="panel card">
+      <div id="chatList"></div>
+      <form class="composer" id="composer">
+        <textarea id="inMsg" placeholder="Cafe 45k" rows="1" enterkeyhint="send"></textarea>
+        <button class="btn" type="submit">Gửi</button>
+      </form>
+    </section>
+
+    <section id="dashPanel" class="panel card hidden">
+      <div id="dash">
+        <div class="periods" id="periods">
+          <button data-p="week">Tuần</button><button data-p="month" class="active">Tháng</button>
+          <button data-p="quarter">Quý</button><button data-p="year">Năm</button>
+        </div>
+        <div class="nav">
+          <button id="prev" aria-label="Kỳ trước">◀</button>
+          <div class="label" id="pLabel"></div>
+          <button id="next" aria-label="Kỳ sau">▶</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><small>Tổng chi</small><b id="sTotal">0</b></div>
+          <div class="stat"><small>Số giao dịch</small><b id="sCount">0</b></div>
+          <div class="stat"><small>Trung bình/ngày</small><b id="sAvg">0</b></div>
+        </div>
+        <div><h3>Chi tiêu theo thời gian</h3><div class="chart" id="chart"></div></div>
+        <div><h3>Giao dịch trong kỳ</h3><div id="txList"></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="parser.js"></script>
+<script>
+(function () {
+  'use strict';
+  var TZ_OFFSET = 7 * 3600 * 1000; // múi giờ Việt Nam
+  var DAY = 86400000;
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  function h(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text; // luôn textContent, không innerHTML
+    return n;
+  }
+  function money(v) { return Number(v).toLocaleString('vi-VN') + 'đ'; }
+
+  var state = { url: '', token: '', user: '', config: {}, items: [], tab: 'chat', period: 'month', offset: 0 };
+
+  /* ---------- API ---------- */
+  function call(method, payload) {
+    var opts, url = state.url;
+    if (method === 'GET') {
+      url += (url.indexOf('?') >= 0 ? '&' : '?') + 'action=list&token=' + encodeURIComponent(state.token);
+      opts = { method: 'GET' };
+    } else {
+      payload.token = state.token;
+      // text/plain để tránh preflight CORS (Apps Script không xử lý OPTIONS)
+      opts = { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) };
+    }
+    return fetch(url, opts).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d.ok) throw new Error(d.error === 'unauthorized' ? 'Sai mã chung' : (d.error || 'Lỗi không xác định'));
+      return d;
+    });
+  }
+  function load() {
+    return call('GET').then(function (d) {
+      state.config = d.config || {};
+      state.items = d.items || [];
+      applyConfig();
+    });
+  }
+
+  /* ---------- Cấu hình ---------- */
+  function applyConfig() {
+    var c = state.config;
+    var name = (c.app_name || '').trim() || 'Personal Finance Chat';
+    document.title = name;
+    var house = (c.household_name || '').trim();
+    $('hName').textContent = house || name;
+    var slogan = (c.slogan || '').trim();
+    $('hSlogan').textContent = slogan;
+    $('hSlogan').classList.toggle('hidden', !slogan);
+    var color = (c.primary_color || '').trim();
+    var root = document.documentElement.style;
+    if (/^#[0-9a-fA-F]{6}$/.test(color)) {
+      root.setProperty('--primary', color);
+      root.setProperty('--primary-dark', shade(color, 0.45));
+    } else {
+      root.removeProperty('--primary');
+      root.removeProperty('--primary-dark');
+    }
+  }
+  function shade(hex, f) { // làm tối màu cho gradient nền
+    var n = parseInt(hex.slice(1), 16);
+    var r = Math.round(((n >> 16) & 255) * (1 - f)), g = Math.round(((n >> 8) & 255) * (1 - f)), b = Math.round((n & 255) * (1 - f));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  /* ---------- Màn hình ---------- */
+  function show(screen) { // setup | who | app
+    $('setup').classList.toggle('hidden', screen !== 'setup');
+    $('who').classList.toggle('hidden', screen !== 'who');
+    $('tabsWrap').classList.toggle('hidden', screen !== 'app');
+    $('main').classList.toggle('hidden', screen !== 'app');
+    $('btnSettings').classList.toggle('hidden', screen === 'setup');
+    if (screen === 'app') { switchTab(state.tab); }
+  }
+  function switchTab(t) {
+    state.tab = t;
+    document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === t); });
+    $('chatPanel').classList.toggle('hidden', t !== 'chat');
+    $('dashPanel').classList.toggle('hidden', t !== 'dash');
+    if (t === 'chat') renderChat(true); else renderDash();
+  }
+
+  /* ---------- Chat ---------- */
+  function vn(ts) { return new Date(ts + TZ_OFFSET); } // đọc bằng getUTC*
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function dayLabel(ts) { var d = vn(ts); return pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear(); }
+  function timeLabel(ts) { var d = vn(ts); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+
+  function bubble(it) {
+    var mine = it.username === state.user;
+    var m = h('div', 'msg' + (mine ? ' mine' : '') + (it.pending ? ' pending' : ''));
+    if (!mine) m.appendChild(h('div', 'who', it.username));
+    var row = h('div', 'row');
+    row.appendChild(h('span', '', it.content));
+    row.appendChild(h('span', 'amt', money(it.amount)));
+    m.appendChild(row);
+    var meta = h('div', 'meta');
+    meta.appendChild(h('span', '', timeLabel(Date.parse(it.created_at))));
+    if (mine && !it.pending) {
+      var d = h('button', 'del', 'Xoá');
+      d.type = 'button';
+      d.addEventListener('click', function () { removeItem(it); });
+      meta.appendChild(d);
+    }
+    m.appendChild(meta);
+    return m;
+  }
+  function renderChat(scroll) {
+    var list = $('chatList');
+    list.textContent = '';
+    var sorted = state.items.slice().sort(function (a, b) { return Date.parse(a.created_at) - Date.parse(b.created_at); });
+    if (!sorted.length) list.appendChild(h('div', 'empty', 'Chưa có chi tiêu nào. Thử nhập: Cafe 45k'));
+    var lastDay = '';
+    sorted.forEach(function (it) {
+      var dl = dayLabel(Date.parse(it.created_at));
+      if (dl !== lastDay) { list.appendChild(h('div', 'day', dl)); lastDay = dl; }
+      list.appendChild(bubble(it));
+    });
+    if (scroll) list.scrollTop = list.scrollHeight;
+  }
+  function botNote(text, isErr) {
+    var list = $('chatList');
+    list.appendChild(h('div', 'msg bot' + (isErr ? ' err' : ''), text));
+    list.scrollTop = list.scrollHeight;
+  }
+  var sending = false;
+  function send() {
+    var raw = $('inMsg').value;
+    if (!raw.trim() || sending) return;
+    var p;
+    try { p = PFParser.parse(raw); } catch (e) {
+      botNote('Không ghi được: ' + e.message + '. Ví dụ: Cafe 45k', true);
+      return;
+    }
+    sending = true;
+    $('inMsg').value = '';
+    var temp = { id: 'tmp' + Date.now(), created_at: new Date().toISOString(), username: state.user, content: p.content, amount: p.amount, pending: true };
+    state.items.push(temp);
+    renderChat(true);
+    call('POST', { action: 'add', username: state.user, content: p.content, amount: p.amount }).then(function (d) {
+      state.items[state.items.indexOf(temp)] = d.item;
+      renderChat(true);
+      botNote('Đã ghi: ' + d.item.content + ' — ' + money(d.item.amount), false);
+    }).catch(function (e) {
+      state.items.splice(state.items.indexOf(temp), 1);
+      renderChat(true);
+      botNote('Lưu thất bại: ' + e.message, true);
+    }).then(function () { sending = false; });
+  }
+  function removeItem(it) {
+    if (!confirm('Xoá "' + it.content + ' — ' + money(it.amount) + '"?')) return;
+    call('POST', { action: 'delete', id: it.id }).then(function () {
+      state.items = state.items.filter(function (x) { return x.id !== it.id; });
+      renderChat(false);
+    }).catch(function (e) { botNote('Xoá thất bại: ' + e.message, true); });
+  }
+
+  /* ---------- Dashboard ---------- */
+  var MONTHS = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+  var WDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+  // Trả về {start, end, labels, idx(s), title} với mốc tính bằng ms "giờ VN" (UTC đã dịch +7h).
+  function range(period, offset) {
+    var now = vn(Date.now()), y = now.getUTCFullYear(), m = now.getUTCMonth(), d = now.getUTCDate();
+    var start, end, labels = [], idx, title;
+    if (period === 'week') {
+      var dow = (now.getUTCDay() + 6) % 7;
+      start = Date.UTC(y, m, d - dow + 7 * offset); end = start + 7 * DAY;
+      labels = WDAYS.slice();
+      idx = function (s) { return Math.floor((s.getTime() - start) / DAY); };
+      title = fmtShort(start) + ' – ' + fmtShort(end - DAY);
+    } else if (period === 'month') {
+      start = Date.UTC(y, m + offset, 1); end = Date.UTC(y, m + offset + 1, 1);
+      var n = Math.round((end - start) / DAY);
+      for (var i = 1; i <= n; i++) labels.push(String(i));
+      idx = function (s) { return s.getUTCDate() - 1; };
+      var sd = new Date(start);
+      title = 'Tháng ' + (sd.getUTCMonth() + 1) + '/' + sd.getUTCFullYear();
+    } else if (period === 'quarter') {
+      var q = Math.floor(m / 3) + offset;
+      start = Date.UTC(y, q * 3, 1); end = Date.UTC(y, q * 3 + 3, 1);
+      var s0 = new Date(start), base = s0.getUTCFullYear() * 12 + s0.getUTCMonth();
+      for (var j = 0; j < 3; j++) labels.push(MONTHS[(s0.getUTCMonth() + j) % 12]);
+      idx = function (s) { return s.getUTCFullYear() * 12 + s.getUTCMonth() - base; };
+      title = 'Quý ' + (Math.floor(s0.getUTCMonth() / 3) + 1) + '/' + s0.getUTCFullYear();
+    } else {
+      start = Date.UTC(y + offset, 0, 1); end = Date.UTC(y + offset + 1, 0, 1);
+      labels = MONTHS.slice();
+      idx = function (s) { return s.getUTCMonth(); };
+      title = 'Năm ' + (y + offset);
+    }
+    return { start: start, end: end, labels: labels, idx: idx, title: title };
+  }
+  function fmtShort(ms) { var d = new Date(ms); return pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1); }
+
+  function renderDash() {
+    var r = range(state.period, state.offset);
+    var buckets = r.labels.map(function () { return 0; });
+    var inRange = [], total = 0;
+    state.items.forEach(function (it) {
+      var ts = Date.parse(it.created_at);
+      if (isNaN(ts)) return;
+      var s = vn(ts), sm = s.getTime();
+      if (sm < r.start || sm >= r.end) return;
+      total += it.amount;
+      inRange.push(it);
+      var i = r.idx(s);
+      if (i >= 0 && i < buckets.length) buckets[i] += it.amount;
+    });
+    $('pLabel').textContent = r.title;
+    $('next').disabled = state.offset >= 0;
+    $('sTotal').textContent = money(total);
+    $('sCount').textContent = String(inRange.length);
+    var nowVn = Date.now() + TZ_OFFSET;
+    var days = Math.max(1, Math.ceil((Math.min(nowVn, r.end) - r.start) / DAY));
+    $('sAvg').textContent = money(Math.round(total / days));
+
+    var chart = $('chart');
+    chart.textContent = '';
+    var max = Math.max.apply(null, buckets.concat([1]));
+    var step = r.labels.length > 12 ? Math.ceil(r.labels.length / 8) : 1;
+    buckets.forEach(function (v, i) {
+      var bar = h('div', 'bar');
+      bar.title = r.labels[i] + ': ' + money(v);
+      var fill = h('i');
+      fill.style.height = (v / max * 100 * 0.82) + '%';
+      bar.appendChild(fill);
+      bar.appendChild(h('span', '', i % step === 0 ? r.labels[i] : ''));
+      chart.appendChild(bar);
+    });
+
+    var list = $('txList');
+    list.textContent = '';
+    if (!inRange.length) list.appendChild(h('div', 'empty', 'Không có giao dịch trong kỳ này'));
+    inRange.sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); }).forEach(function (it) {
+      var row = h('div', 'tx');
+      var c = h('div', 'c', it.content);
+      var ts = Date.parse(it.created_at);
+      c.appendChild(h('small', '', dayLabel(ts) + ' ' + timeLabel(ts) + ' · ' + it.username));
+      row.appendChild(c);
+      row.appendChild(h('b', '', money(it.amount)));
+      list.appendChild(row);
+    });
+  }
+
+  /* ---------- Sự kiện ---------- */
+  document.querySelectorAll('.tab').forEach(function (b) {
+    b.addEventListener('click', function () {
+      switchTab(b.dataset.tab);
+      if (b.dataset.tab === 'dash') load().then(renderDash).catch(function () {});
+    });
+  });
+  document.querySelectorAll('#periods button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.period = b.dataset.p; state.offset = 0;
+      document.querySelectorAll('#periods button').forEach(function (x) { x.classList.toggle('active', x === b); });
+      renderDash();
+    });
+  });
+  $('prev').addEventListener('click', function () { state.offset--; renderDash(); });
+  $('next').addEventListener('click', function () { if (state.offset < 0) { state.offset++; renderDash(); } });
+  $('composer').addEventListener('submit', function (e) { e.preventDefault(); send(); });
+  $('inMsg').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+  $('btnSettings').addEventListener('click', function () {
+    $('inUrl').value = state.url; $('inToken').value = ''; $('setupErr').textContent = '';
+    show('setup');
+  });
+
+  $('setupForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    state.url = $('inUrl').value.trim();
+    state.token = $('inToken').value;
+    $('setupErr').textContent = '';
+    $('setupBtn').disabled = true;
+    load().then(function () {
+      store.set('pf_url', state.url); store.set('pf_token', state.token);
+      pickUser();
+    }).catch(function (err) {
+      $('setupErr').textContent = err.message === 'Failed to fetch' ? 'Không kết nối được. Kiểm tra URL.' : err.message;
+    }).then(function () { $('setupBtn').disabled = false; });
+  });
+
+  function pickUser() {
+    var users = (state.config.users || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    var sel = $('selUser');
+    sel.textContent = '';
+    users.forEach(function (u) { var o = h('option', '', u); o.value = u; sel.appendChild(o); });
+    sel.classList.toggle('hidden', !users.length);
+    $('inUser').classList.toggle('hidden', users.length > 0);
+    if (state.user && users.indexOf(state.user) >= 0) sel.value = state.user;
+    $('inUser').value = state.user;
+    show('who');
+  }
+  $('whoForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var sel = $('selUser');
+    var name = (sel.classList.contains('hidden') ? $('inUser').value : sel.value).trim();
+    if (!name) return;
+    state.user = name; store.set('pf_user', name);
+    show('app');
+  });
+
+  /* ---------- Khởi động ---------- */
+  state.url = store.get('pf_url'); state.token = store.get('pf_token'); state.user = store.get('pf_user');
+  if (!state.url || !state.token) {
+    show('setup');
+  } else {
+    $('chatList').appendChild(h('div', 'empty', 'Đang tải...'));
+    load().then(function () { if (state.user) show('app'); else pickUser(); })
+      .catch(function (err) { $('setupErr').textContent = err.message; $('inUrl').value = state.url; show('setup'); });
+  }
+})();
+</script>
+</body>
+</html>
