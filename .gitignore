@@ -11,3 +11,6 @@ node_modules/
 # Log / tạm
 *.log
 *.tmp
+
+# Biến môi trường local (chứa mã chung, không commit)
+.env.local

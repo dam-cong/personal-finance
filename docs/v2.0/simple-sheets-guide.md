@@ -232,3 +232,40 @@ cập nhật Apps Script:
    version)** → **Triển khai (Deploy)**. URL giữ nguyên.
 
 Nếu chưa làm, bấm Lưu sẽ báo "Apps Script chưa được cập nhật".
+
+---
+
+## Đăng nhập và cấu hình trên Vercel (bản mới)
+
+Từ bản này người dùng **đăng nhập** thay vì nhập URL Apps Script. Bạn làm 3
+việc một lần:
+
+### 1. Đặt tài khoản trong Sheet
+Tab **`config`** → dòng `users` (cột B) theo dạng `tên:mật khẩu`, cách nhau dấu
+phẩy, ví dụ `hiendc:1998,trangdt:1999`. Nên dùng mật khẩu dài hơn 4 số. Mật
+khẩu nằm dạng chữ thường trong Sheet, hãy giữ Sheet ở chế độ riêng tư.
+
+### 2. Đặt biến môi trường trên Vercel
+Vercel → project → **Settings → Environment Variables**, thêm (Production và
+Preview):
+
+| Tên | Giá trị |
+|---|---|
+| `APPS_SCRIPT_URL` | URL Web app Apps Script (`https://script.google.com/macros/s/…/exec`) |
+| `APPS_TOKEN` | đúng giá trị `TOKEN` bạn đặt trong Script Properties (Bước 2) |
+
+Lưu xong → **Deployments → Redeploy** để áp dụng.
+
+### 3. Cập nhật Apps Script
+Dán `apps-script/Code.gs` mới, **Triển khai → Quản lý bản triển khai → bút chì →
+Phiên bản mới → Triển khai** (xem mục "Sửa cấu hình ngay trong app").
+
+### Dùng
+Mở trang → nhập tên đăng nhập + mật khẩu. Bấm nút tròn chữ cái đầu (mobile)
+hoặc ở header (desktop) để mở **Tài khoản**: Cấu hình nhà, Đăng xuất. Thêm/xoá
+người dùng: sửa dòng `users` trong Sheet (có hiệu lực ở lần đăng nhập sau; để
+chặn ngay người đang đăng nhập, đổi `APPS_TOKEN` trên Vercel).
+
+> Bước 4 cũ ("nhập URL + mã chung trong app") **không còn áp dụng**. Chạy thử
+> trên máy: `npx vercel dev` (cần cùng 2 biến môi trường, đặt trong
+> `.env.local`, không commit).

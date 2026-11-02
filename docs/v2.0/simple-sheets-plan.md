@@ -282,3 +282,27 @@ mở Google Sheet: `app_name`, `household_name`, `slogan`, `primary_color`,
   deployments → New version), nếu không app báo "cần cập nhật Apps Script".
 - **Kiểm tra:** sửa từng trường → Sheet đổi đúng dòng; màu/hạn mức sai bị chặn;
   tải lại vẫn giữ; thiếu key thì tự thêm dòng.
+
+## 15. Đăng nhập theo user + URL/mã chung trên Vercel (2026-11-02)
+
+> **Trạng thái:** Đã code, đã test proxy (`node tests/proxy.test.js`) và luồng
+> đăng nhập bằng `fetch` giả; **chưa verify** trên Vercel + Google Sheet thật.
+
+Người dùng không còn nhập URL Apps Script / mã chung. Hai giá trị này đặt ở
+biến môi trường Vercel; người dùng **đăng nhập** bằng tài khoản trong dòng
+`users` của tab `config` (`hiendc:1998,trangdt:1999`).
+
+- **Kiến trúc:** trình duyệt → `/api/pf` (Vercel function, `api/pf.js`) →
+  Apps Script → Sheet. Trình duyệt chỉ giữ session ký HMAC (30 ngày).
+- **Env Vercel:** `APPS_SCRIPT_URL`, `APPS_TOKEN` (= `TOKEN` trong Script
+  Properties). Đổi `APPS_TOKEN` = đăng xuất toàn bộ.
+- **Bảo mật:** mật khẩu không bao giờ gửi xuống trình duyệt (`config.users`
+  chỉ còn danh sách tên); `add` lấy username từ session; `delete` chỉ xoá
+  khoản của mình (403 nếu không); `setconfig` bỏ qua key `users`.
+- **Sai khác so với bản trước:** bỏ màn nhập URL/mã chung và màn chọn người;
+  thêm màn Đăng nhập, thẻ Tài khoản (Cấu hình nhà / Đăng xuất); màn Cấu hình
+  không còn trường Người dùng (sửa `users` trực tiếp trong Sheet).
+- **Chạy local:** `npx vercel dev` (mở file trực tiếp không còn dùng được).
+- **Rủi ro:** mật khẩu dạng chữ thường trong Sheet, mật khẩu ngắn dễ dò, chỉ có
+  độ trễ khi sai (không rate-limit toàn cục) → nên dùng mật khẩu dài, giữ Sheet
+  private.

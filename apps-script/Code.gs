@@ -25,7 +25,7 @@ function setup() {
       ['household_name', 'Nhà của tôi'],
       ['slogan', ''],
       ['primary_color', '#2563EB'],
-      ['users', 'Người 1,Người 2'],
+      ['users', 'user1:matkhau1,user2:matkhau2'],
       ['monthly_budget', '10000000'],
     ]);
   }
@@ -89,7 +89,7 @@ function readConfig_() {
   return out;
 }
 
-var CFG_KEYS = ['app_name', 'household_name', 'slogan', 'primary_color', 'users', 'monthly_budget'];
+var CFG_KEYS = ['app_name', 'household_name', 'slogan', 'primary_color', 'monthly_budget']; // không cho sửa users qua API (chứa mật khẩu)
 
 // Cập nhật cấu hình: chỉ nhận key trong CFG_KEYS, kiểm tra giá trị; thiếu dòng thì thêm mới.
 function setConfig_(p) {

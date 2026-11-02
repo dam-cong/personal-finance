@@ -70,6 +70,7 @@
   .btn:active { transform: scale(.97); }
   .btn:disabled { opacity: .55; }
   .link { border: 0; background: transparent; color: var(--muted); font-size: 14px; padding: 8px; }
+  .link.danger { color: var(--danger); font-weight: 700; }
   .err { color: var(--danger); font-size: 13px; min-height: 1em; }
   .pick { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .pick button { border: 2px solid var(--line); background: var(--soft); border-radius: 20px; padding: 14px 8px; font-weight: 700;
@@ -116,7 +117,8 @@
   .mtabs { flex: none; width: 100%; display: flex; background: var(--soft); border-radius: 9999px; padding: 3px; gap: 2px; }
   .mtabs button { flex: 1; border: 0; background: transparent; border-radius: 9999px; padding: 8px 12px; font-size: 14px; white-space: nowrap; font-weight: 700; color: var(--muted); }
   .mtabs button.active { background: var(--primary); color: #fff; box-shadow: 0 6px 14px -8px var(--primary); }
-  .mav { width: 38px; height: 38px; border: 0; font-size: 15px; }
+  .mav { width: 38px; height: 38px; border: 2px solid #fff; font-size: 15px; box-shadow: 0 4px 12px -4px rgba(0,0,0,.45); }
+  #btnUser { border: 2px solid #fff; box-shadow: 0 4px 12px -4px rgba(0,0,0,.45); }
 
   /* ---------- chat ---------- */
   .today { flex: none; display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; }
@@ -243,17 +245,16 @@
 
 <!-- Cổng: kết nối + chọn người -->
 <div id="gate" class="gate hidden">
-  <form class="gcard" id="setupForm">
+  <form class="gcard" id="loginForm">
     <img src="icons/icon-192.png" alt="">
-    <h2>Kết nối Google Sheet</h2>
-    <p>Dán URL Apps Script và mã chung để bắt đầu ghi chi tiêu.</p>
-    <div class="field"><label for="inUrl">URL Apps Script</label>
-      <input id="inUrl" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/…/exec" required></div>
-    <div class="field"><label for="inToken">Mã chung</label>
-      <input id="inToken" type="password" autocomplete="off" required></div>
-    <div class="err" id="setupErr" role="alert"></div>
-    <button class="btn" id="setupBtn" type="submit">Kết nối</button>
-    <button class="link hidden" id="setupCancel" type="button">Huỷ</button>
+    <h2>Đăng nhập</h2>
+    <p>Dùng tài khoản của gia đình để ghi và xem chi tiêu.</p>
+    <div class="field"><label for="inLogin">Tên đăng nhập</label>
+      <input id="inLogin" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="40" required></div>
+    <div class="field"><label for="inPass">Mật khẩu</label>
+      <input id="inPass" type="password" autocomplete="current-password" maxlength="80" required></div>
+    <div class="err" id="loginErr" role="alert"></div>
+    <button class="btn" id="loginBtn" type="submit">Đăng nhập</button>
   </form>
   <form class="gcard hidden" id="cfgForm">
     <img src="icons/icon-192.png" alt="">
@@ -267,26 +268,20 @@
       <input id="inSlogan" maxlength="120" placeholder="Để trống = ẩn"></div>
     <div class="field"><label for="inColorTxt">Màu chủ đạo</label>
       <div class="colorrow"><input id="inColor" type="color" aria-label="Chọn màu"><input id="inColorTxt" maxlength="7" placeholder="#2563EB" autocapitalize="off"></div></div>
-    <div class="field"><label for="inUsers">Người dùng (cách nhau dấu phẩy)</label>
-      <input id="inUsers" maxlength="150" placeholder="Hiền,Lan,Nam"></div>
     <div class="field"><label for="inBudget">Hạn mức chi tiêu mỗi tháng (đ)</label>
       <input id="inBudget" inputmode="numeric" maxlength="15" placeholder="10000000 — để trống = tắt"></div>
     <div class="err" id="cfgErr" role="alert"></div>
     <button class="btn" id="cfgBtn" type="submit">Lưu cấu hình</button>
     <button class="link" id="cfgCancel" type="button">Huỷ</button>
-    <button class="link" id="cfgConn" type="button">Đổi kết nối Google Sheet</button>
   </form>
-  <form class="gcard hidden" id="whoForm">
+  <div class="gcard hidden" id="acctForm">
     <img src="icons/icon-192.png" alt="">
-    <h2>Bạn là ai?</h2>
-    <p>Chạm vào tên của bạn để vào app.</p>
-    <div class="pick" id="pick"></div>
-    <input id="inUser" class="hidden" placeholder="Nhập tên của bạn" maxlength="40">
-    <button class="btn hidden" id="whoBtn" type="submit">Vào</button>
-    <button class="link" id="whoConfig" type="button">Cấu hình nhà (tên, màu, hạn mức…)</button>
-    <button class="link" id="whoSettings" type="button">Cài đặt kết nối</button>
-    <button class="link hidden" id="whoCancel" type="button">Quay lại</button>
-  </form>
+    <h2>Tài khoản</h2>
+    <p>Đang đăng nhập: <b id="acctName"></b></p>
+    <button class="btn" id="acctConfig" type="button">Cấu hình nhà</button>
+    <button class="link danger" id="acctLogout" type="button">Đăng xuất</button>
+    <button class="link" id="acctCancel" type="button">Quay lại</button>
+  </div>
 </div>
 
 <!-- Ứng dụng -->
@@ -384,7 +379,8 @@
   var DAY = 86400000;
   var store = {
     get: function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
-    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
   };
   var $ = function (id) { return document.getElementById(id); };
   function h(tag, cls, text) {
@@ -395,9 +391,24 @@
   }
   var ICON_X = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>'; // hằng số tĩnh, an toàn
   function money(v) { return Number(v).toLocaleString('vi-VN') + 'đ'; }
+  // Mỗi người một màu nổi bật (theo tên), không trùng tông xanh của header.
+  var AV_COLORS = [
+    ['#f97316', '#ef4444'], ['#ec4899', '#8b5cf6'], ['#f59e0b', '#ef4444'],
+    ['#10b981', '#84cc16'], ['#a855f7', '#6366f1'], ['#f43f5e', '#fb923c']
+  ];
+  // Màu riêng đã chọn cho từng người; người khác dùng màu theo tên.
+  var AV_FIXED = { hiendc: ['#f97316', '#ef4444'], trangdt: ['#ec4899', '#8b5cf6'] };
+  function avatarBg(name) {
+    var f = AV_FIXED[String(name).toLowerCase()];
+    if (f) return 'linear-gradient(135deg,' + f[0] + ',' + f[1] + ')';
+    var h = 0, t = String(name);
+    for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+    var c = AV_COLORS[h % AV_COLORS.length];
+    return 'linear-gradient(135deg,' + c[0] + ',' + c[1] + ')';
+  }
   function initial(s) { return (String(s).trim().charAt(0) || '?').toUpperCase(); }
 
-  var state = { url: '', token: '', user: '', config: {}, items: [], tab: 'chat', period: 'month', offset: 0, sel: -1 };
+  var state = { session: '', user: '', config: {}, items: [], tab: 'chat', period: 'month', offset: 0, sel: -1 };
 
   /* ---------- Nhóm chi tiêu (suy từ nội dung, không cần thêm cột) ---------- */
   var CATS = [
@@ -423,21 +434,33 @@
   /* ---------- API ---------- */
   var inflight = 0;
   function busy(d) { inflight += d; $('busy').classList.toggle('on', inflight > 0); }
-  function call(method, payload) {
-    var opts, url = state.url;
-    if (method === 'GET') {
-      url += (url.indexOf('?') >= 0 ? '&' : '?') + 'action=list&token=' + encodeURIComponent(state.token);
-      opts = { method: 'GET' };
-    } else {
-      payload.token = state.token;
-      // text/plain để tránh preflight CORS (Apps Script không xử lý OPTIONS)
-      opts = { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) };
-    }
+  // Mọi lệnh đi qua /api/pf (Vercel function): URL Apps Script và mã chung chỉ nằm trên server.
+  function call(payload, noAuth) {
+    var headers = { 'Content-Type': 'application/json' };
+    if (state.session && !noAuth) headers.Authorization = 'Bearer ' + state.session;
     busy(1);
-    return fetch(url, opts).then(function (r) { return r.json(); }).then(function (d) {
-      if (!d.ok) throw new Error(d.error === 'unauthorized' ? 'Sai mã chung' : (d.error || 'Lỗi không xác định'));
-      return d;
-    }).then(function (d) { busy(-1); return d; }, function (e) { busy(-1); throw e; });
+    return fetch('/api/pf', { method: 'POST', headers: headers, body: JSON.stringify(payload) })
+      .then(function (r) {
+        return r.json().catch(function () { throw new Error('no_api'); });
+      }).then(function (d) {
+        if (!d.ok) {
+          if (d.error === 'unauthorized' && !noAuth) setTimeout(function () { logout('Phiên đăng nhập đã hết hạn, hãy đăng nhập lại.'); }, 0);
+          throw new Error(d.error || 'unknown');
+        }
+        return d;
+      }).then(function (d) { busy(-1); return d; }, function (e) { busy(-1); throw e; });
+  }
+  function friendly(code) {
+    var m = {
+      not_configured: 'Máy chủ chưa cấu hình APPS_SCRIPT_URL / APPS_TOKEN trên Vercel.',
+      bad_credentials: 'Sai tên đăng nhập hoặc mật khẩu.',
+      upstream_error: 'Không kết nối được Google Sheet. Kiểm tra URL Apps Script và mã chung trên Vercel.',
+      forbidden: 'Chỉ xoá được khoản chi của chính bạn.',
+      unauthorized: 'Phiên đăng nhập đã hết hạn.',
+      no_api: 'Không gọi được /api/pf. Hãy chạy bằng "npx vercel dev" hoặc dùng bản đã deploy.',
+      'Failed to fetch': 'Mất kết nối mạng, thử lại sau.'
+    };
+    return m[code] || code;
   }
   // Lưu bản sao cục bộ để lần mở sau hiện ngay, không phải chờ Apps Script (1–2 giây).
   function saveCache() {
@@ -447,7 +470,7 @@
     try { var c = JSON.parse(store.get('pf_cache') || 'null'); return c && Array.isArray(c.items) ? c : null; } catch (e) { return null; }
   }
   function load() {
-    return call('GET').then(function (d) {
+    return call({ action: 'list' }).then(function (d) {
       var pending = state.items.filter(function (x) { return x.pending; });
       state.config = d.config || {};
       state.items = (d.items || []).concat(pending);
@@ -456,9 +479,12 @@
     });
   }
   function refresh() {
-    return load().then(function () { renderAll(false); }).catch(function (err) {
-      if (err.message === 'Sai mã chung') { openSetup(err.message); }
-    });
+    return load().then(function () { renderAll(false); }).catch(function () { /* mất mạng: giữ dữ liệu đang hiển thị */ });
+  }
+  function logout(msg) {
+    store.del('pf_session'); store.del('pf_user'); store.del('pf_cache');
+    state.session = ''; state.user = ''; state.items = []; state.config = {};
+    openLogin(msg || '');
   }
 
   /* ---------- Cấu hình ---------- */
@@ -489,26 +515,26 @@
   }
 
   /* ---------- Màn hình ---------- */
-  function show(screen) { // setup | who | app
+  function show(screen) { // login | acct | cfg | app
     var gate = screen !== 'app';
     $('gate').classList.toggle('hidden', !gate);
     $('shell').classList.toggle('hidden', gate);
-    $('setupForm').classList.toggle('hidden', screen !== 'setup');
-    $('whoForm').classList.toggle('hidden', screen !== 'who');
+    $('loginForm').classList.toggle('hidden', screen !== 'login');
+    $('acctForm').classList.toggle('hidden', screen !== 'acct');
     $('cfgForm').classList.toggle('hidden', screen !== 'cfg');
     if (screen === 'app') {
       $('hHello').textContent = 'Chào ' + state.user + ' 👋';
       $('btnUser').textContent = $('btnUserM').textContent = initial(state.user);
+      $('btnUser').style.background = $('btnUserM').style.background = avatarBg(state.user);
       switchTab(state.tab);
       renderAll(true);
     }
   }
-  function connected() { return !!(store.get('pf_url') && state.user); }
   var HEX = /^#[0-9a-fA-F]{6}$/;
   function openConfig() {
     var c = state.config;
     $('inApp').value = c.app_name || ''; $('inHouse').value = c.household_name || '';
-    $('inSlogan').value = c.slogan || ''; $('inUsers').value = c.users || '';
+    $('inSlogan').value = c.slogan || '';
     $('inBudget').value = String(c.monthly_budget || '').replace(/[.,\s]/g, '');
     var col = (c.primary_color || '').trim();
     $('inColorTxt').value = HEX.test(col) ? col : '';
@@ -516,11 +542,11 @@
     $('cfgErr').textContent = '';
     show('cfg');
   }
-  function openSetup(msg) {
-    $('inUrl').value = state.url; $('inToken').value = ''; $('setupErr').textContent = msg || '';
-    $('setupCancel').classList.toggle('hidden', !connected());
-    show('setup');
+  function openLogin(msg) {
+    $('inPass').value = ''; $('loginErr').textContent = msg || '';
+    show('login');
   }
+  function openAcct() { $('acctName').textContent = state.user; show('acct'); }
   function switchTab(t) {
     state.tab = t;
     $('main').dataset.tab = t;
@@ -622,14 +648,14 @@
     var temp = { id: 'tmp' + Date.now(), created_at: new Date().toISOString(), username: state.user, content: p.content, amount: p.amount, pending: true };
     state.items.push(temp);
     renderAll(true);
-    call('POST', { action: 'add', username: state.user, content: p.content, amount: p.amount }).then(function (d) {
+    call({ action: 'add', content: p.content, amount: p.amount }).then(function (d) {
       state.items[state.items.indexOf(temp)] = d.item;
       saveCache(); renderAll(true);
       botNote(catOf(d.item.content).e + ' Đã ghi: ' + d.item.content + ' — ' + money(d.item.amount), false);
     }).catch(function (e) {
       state.items.splice(state.items.indexOf(temp), 1);
       renderAll(true);
-      botNote('Lưu thất bại: ' + (e.message === 'Failed to fetch' ? 'mất kết nối mạng' : e.message), true);
+      botNote('Lưu thất bại: ' + friendly(e.message), true);
     }).then(function () { sending = false; });
   }
 
@@ -644,9 +670,9 @@
   function commitUndo() {
     if (!undo) return;
     var u = undo; undo = null; clearTimeout(u.timer); hideToast();
-    call('POST', { action: 'delete', id: u.it.id }).catch(function (e) {
+    call({ action: 'delete', id: u.it.id }).catch(function (e) {
       state.items.push(u.it); saveCache(); renderAll(false);
-      botNote('Xoá thất bại: ' + e.message, true);
+      botNote('Xoá thất bại: ' + friendly(e.message), true);
     });
   }
   function removeItem(it) {
@@ -802,7 +828,7 @@
   }
 
   /* ---------- Nhập nhanh ---------- */
-  ['🛒 Đi chợ', '🛍️ Shopee', '🛵 Xăng', '🎮 Giải trí'].forEach(function (label) {
+  ['🛒 Đi chợ', '🛍️ Shopee', '🍜 Ăn quán', '🛵 Xăng', '🎮 Giải trí'].forEach(function (label) {
     var b = h('button', '', label); b.type = 'button';
     b.addEventListener('click', function () {
       var word = label.replace(/^\S+\s/, '');
@@ -829,7 +855,7 @@
     var want = dx < 0 ? 'dash' : 'chat';
     if (want !== state.tab) { switchTab(want); if (want === 'dash') refresh(); }
   }, { passive: true });
-  $('btnUserM').addEventListener('click', function () { pickUser(); });
+  $('btnUserM').addEventListener('click', openAcct);
   document.querySelectorAll('#seg button').forEach(function (b) {
     b.addEventListener('click', function () {
       state.period = b.dataset.p; state.offset = 0; state.sel = -1;
@@ -845,9 +871,7 @@
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
   });
   $('btnSettings').addEventListener('click', openConfig);
-  $('whoConfig').addEventListener('click', openConfig);
   $('cfgCancel').addEventListener('click', function () { show('app'); });
-  $('cfgConn').addEventListener('click', function () { openSetup(''); });
   $('inColor').addEventListener('input', function () { $('inColorTxt').value = this.value; });
   $('inColorTxt').addEventListener('input', function () { if (HEX.test(this.value)) $('inColor').value = this.value; });
   $('cfgForm').addEventListener('submit', function (e) {
@@ -858,81 +882,53 @@
     if (budget && !/^\d+$/.test(budget)) { $('cfgErr').textContent = 'Hạn mức chỉ gồm chữ số.'; return; }
     var values = {
       app_name: $('inApp').value, household_name: $('inHouse').value, slogan: $('inSlogan').value,
-      primary_color: color, users: $('inUsers').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean).join(','),
-      monthly_budget: budget
+      primary_color: color, monthly_budget: budget
     };
     $('cfgErr').textContent = ''; $('cfgBtn').disabled = true; $('cfgBtn').textContent = 'Đang lưu…';
-    call('POST', { action: 'setconfig', values: values }).then(function (d) {
+    call({ action: 'setconfig', values: values }).then(function (d) {
       state.config = d.config || state.config;
       applyConfig(); saveCache(); show('app');
     }).catch(function (err) {
       var m = err.message;
       if (m === 'unknown_action') m = 'Apps Script chưa được cập nhật. Hãy dán Code.gs mới và deploy phiên bản mới.';
       else if (m.indexOf('invalid_') === 0) m = 'Giá trị không hợp lệ: ' + m.slice(8);
-      else if (m === 'Failed to fetch') m = 'Mất kết nối mạng, thử lại sau.';
+      else m = friendly(m);
       $('cfgErr').textContent = m;
     }).then(function () { $('cfgBtn').disabled = false; $('cfgBtn').textContent = 'Lưu cấu hình'; });
   });
-  $('btnUser').addEventListener('click', function () { pickUser(); });
-  $('setupCancel').addEventListener('click', function () { show('app'); });
-  $('whoSettings').addEventListener('click', function () { openSetup(''); });
-  $('whoCancel').addEventListener('click', function () { show('app'); });
+  $('btnUser').addEventListener('click', openAcct);
+  $('acctConfig').addEventListener('click', openConfig);
+  $('acctCancel').addEventListener('click', function () { show('app'); });
+  $('acctLogout').addEventListener('click', function () { logout(''); });
 
-  $('setupForm').addEventListener('submit', function (e) {
+  $('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    var prevUrl = state.url;
-    state.url = $('inUrl').value.trim();
-    state.token = $('inToken').value;
-    $('setupErr').textContent = '';
-    $('setupBtn').disabled = true;
-    load().then(function () {
-      store.set('pf_url', state.url); store.set('pf_token', state.token);
-      if (state.user) show('app'); else pickUser();
+    var u = $('inLogin').value.trim(), p = $('inPass').value;
+    if (!u || !p) return;
+    $('loginErr').textContent = ''; $('loginBtn').disabled = true; $('loginBtn').textContent = 'Đang đăng nhập…';
+    call({ action: 'login', username: u, password: p }, true).then(function (d) {
+      state.session = d.session; state.user = d.username;
+      store.set('pf_session', d.session); store.set('pf_user', d.username);
+      $('inPass').value = '';
+      return load().then(function () { show('app'); });
     }).catch(function (err) {
-      state.url = prevUrl;
-      $('setupErr').textContent = err.message === 'Failed to fetch' ? 'Không kết nối được. Kiểm tra lại URL.' : err.message;
-    }).then(function () { $('setupBtn').disabled = false; });
+      $('loginErr').textContent = friendly(err.message);
+    }).then(function () { $('loginBtn').disabled = false; $('loginBtn').textContent = 'Đăng nhập'; });
   });
 
-  function pickUser() {
-    var users = (state.config.users || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-    var box = $('pick'); box.textContent = '';
-    users.forEach(function (u) {
-      var b = h('button'); b.type = 'button';
-      var a = h('div', 'av', initial(u)); b.appendChild(a); b.appendChild(h('span', '', u));
-      b.addEventListener('click', function () { enter(u); });
-      box.appendChild(b);
-    });
-    var manual = users.length === 0;
-    box.classList.toggle('hidden', manual);
-    $('inUser').classList.toggle('hidden', !manual);
-    $('whoBtn').classList.toggle('hidden', !manual);
-    $('inUser').value = state.user;
-    $('whoCancel').classList.toggle('hidden', !state.user);
-    $('whoSettings').classList.toggle('hidden', !state.url);
-    show('who');
-  }
-  function enter(name) {
-    name = String(name).trim();
-    if (!name) return;
-    state.user = name; store.set('pf_user', name);
-    show('app');
-  }
-  $('whoForm').addEventListener('submit', function (e) { e.preventDefault(); enter($('inUser').value); });
-
   /* ---------- Khởi động ---------- */
-  state.url = store.get('pf_url'); state.token = store.get('pf_token'); state.user = store.get('pf_user');
+  state.session = store.get('pf_session'); state.user = store.get('pf_user');
   var c0 = cachedData();
-  if (!state.url || !state.token) {
-    openSetup('');
-  } else if (state.user && c0) {
+  if (!state.session || !state.user) {
+    openLogin('');
+  } else if (c0) {
     // Có bản sao cục bộ: vào app ngay, tải mới ở nền.
     state.config = c0.config || {}; state.items = c0.items || [];
     applyConfig(); show('app'); refresh();
   } else {
     busy(1);
-    load().then(function () { if (state.user) show('app'); else pickUser(); })
-      .catch(function (err) { openSetup(err.message); })
+    load().then(function () { show('app'); })
+      .catch(function (err) { if (err.message !== 'unauthorized') openLogin(friendly(err.message)); })
       .then(function () { busy(-1); });
   }
 })();

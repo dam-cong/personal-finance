@@ -1,0 +1,5 @@
+{
+  "name": "famfin",
+  "private": true,
+  "engines": { "node": ">=20" }
+}
