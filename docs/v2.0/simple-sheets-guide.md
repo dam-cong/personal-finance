@@ -269,3 +269,31 @@ chặn ngay người đang đăng nhập, đổi `APPS_TOKEN` trên Vercel).
 > Bước 4 cũ ("nhập URL + mã chung trong app") **không còn áp dụng**. Chạy thử
 > trên máy: `npx vercel dev` (cần cùng 2 biến môi trường, đặt trong
 > `.env.local`, không commit).
+
+---
+
+## Ghi bù và sửa khoản chi
+
+- **Ghi cho ngày khác:** gõ ngày ở đầu tin nhắn — `hôm qua Cafe 45k`,
+  `hôm kia Đi chợ 200k`, `15/10 Ăn quán 120k`, `15/10/2025 …`. Dòng "📅 Ghi cho
+  ngày …" hiện phía trên ô nhập để bạn kiểm tra trước khi gửi.
+- **Sửa:** chạm vào khoản chi **của bạn** trong Chat → sửa nội dung, số tiền,
+  ngày → **Lưu thay đổi** (hoặc **Xoá khoản này**).
+- **Cập nhật Apps Script (bắt buộc một lần):** dán `apps-script/Code.gs` mới rồi
+  **Triển khai → Quản lý bản triển khai → bút chì → Phiên bản mới → Triển
+  khai**. Nếu chưa làm, bấm Lưu sẽ báo "Apps Script chưa cập nhật".
+
+---
+
+## Tìm kiếm, biểu đồ và giao diện
+
+- **Tìm kiếm / lọc:** bấm biểu tượng 🔍 ở tab Chat hoặc Thống kê → nhập từ khoá
+  (không cần gõ dấu), chọn người, chọn nhóm. Cả Chat và Thống kê cùng đổi theo
+  bộ lọc; bấm ✕ trên dòng "Đang lọc" để bỏ lọc. Hạn mức tháng luôn tính trên
+  toàn bộ chi tiêu.
+- **Biểu đồ:** ở tab Thống kê, chạm một nhóm trong "Chi vào đâu?" để xem tỉ
+  trọng; chạm cột trong "Xu hướng 6 tháng" để xem tháng đó.
+- **Tải lại:** kéo xuống ở đầu danh sách (mobile) hoặc chuyển qua lại các tab.
+- **Sáng/Tối:** nút tròn chữ cái đầu (mobile) hoặc ở header (desktop) → thẻ
+  **Tài khoản** → Giao diện: Tự động / Sáng / Tối.
+- Các tính năng này chỉ cần deploy Vercel, **không** cần cập nhật Apps Script.

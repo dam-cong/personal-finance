@@ -106,7 +106,16 @@ async function handler(req, res) {
       return send(res, 200, { ok: true, username: user, config: publicConfig(d.config), items: d.items || [] });
     }
     if (b.action === 'add') {
-      const d = await gas({ action: 'add', username: user, content: b.content, amount: b.amount });
+      const d = await gas({ action: 'add', username: user, content: b.content, amount: b.amount, created_at: b.created_at });
+      return send(res, d.ok ? 200 : 400, d);
+    }
+    if (b.action === 'update') {
+      const l = await gas({ action: 'list' });
+      if (!l.ok) return send(res, 502, { ok: false, error: 'upstream_error' });
+      const it = (l.items || []).filter(function (x) { return String(x.id) === String(b.id); })[0];
+      if (!it) return send(res, 404, { ok: false, error: 'not_found' });
+      if (it.username !== user) return send(res, 403, { ok: false, error: 'forbidden' });
+      const d = await gas({ action: 'update', id: b.id, content: b.content, amount: b.amount, created_at: b.created_at });
       return send(res, d.ok ? 200 : 400, d);
     }
     if (b.action === 'delete') {

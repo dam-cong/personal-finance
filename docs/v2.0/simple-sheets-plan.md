@@ -306,3 +306,48 @@ biến môi trường Vercel; người dùng **đăng nhập** bằng tài kho�
 - **Rủi ro:** mật khẩu dạng chữ thường trong Sheet, mật khẩu ngắn dễ dò, chỉ có
   độ trễ khi sai (không rate-limit toàn cục) → nên dùng mật khẩu dài, giữ Sheet
   private.
+
+## 16. Nâng cấp UX — Giai đoạn 1: sửa khoản chi + nhập ngày cũ (2026-11-02)
+
+> **Trạng thái:** Đã code và test (`node tests/parser.test.js`,
+> `node tests/proxy.test.js`, luồng giao diện bằng `fetch` giả); **chưa verify**
+> trên Vercel + Google Sheet thật. Giai đoạn 2–4 (lọc, biểu đồ, hoàn thiện UI)
+> theo roadmap, chưa làm.
+
+- **Nhập ngày cũ:** tiền tố ở đầu tin nhắn: `hôm nay`, `hôm qua`, `hôm kia`,
+  `dd/mm`, `dd/mm/yyyy` (ví dụ `hôm qua Cafe 45k`, `15/10 Đi chợ 200k`). Ngày
+  không tồn tại hoặc ở tương lai → coi là nội dung thường. Ô nhập hiện gợi ý
+  "📅 Ghi cho ngày …" ngay khi gõ. Khoản ghi bù lưu 12:00 giờ VN.
+- **Sửa khoản chi:** chạm bong bóng của mình → sheet sửa nội dung / số tiền
+  (nhận `45k`) / ngày; có nút Xoá. Cập nhật lạc quan, hoàn lại nếu lỗi.
+- **API:** `add` nhận `created_at` (dạng `…T…+07:00`, không tương lai, không quá
+  5 năm); thêm `update` (proxy kiểm tra chủ sở hữu, 403 nếu khoản của người
+  khác). Cần **deploy phiên bản mới** của Apps Script.
+- **Hạn chế đã biết:** `1/2 ký thịt 50k` (khi 1/2 đã qua trong năm) bị hiểu là
+  ngày 1/2 — gợi ý ngày hiện ngay để người dùng nhận ra và sửa.
+
+## 17. Nâng cấp UX — Giai đoạn 2–4 (2026-11-02)
+
+> **Trạng thái:** Đã code và kiểm tra bằng API giả + ảnh chụp Edge headless
+> (mobile 390px, desktop 1280px, sáng/tối); **chưa verify** trên Vercel + Google
+> Sheet thật và chưa thử cảm ứng thật (kéo để tải lại, vuốt). Chỉ sửa
+> `index.html`, không đổi API.
+
+**Giai đoạn 2 — Tìm kiếm + lọc:** nút 🔍 (Chat và Thống kê) mở sheet lọc: từ
+khoá (không phân biệt dấu), người chi, nhóm. Bộ lọc dùng chung: Chat và mọi thẻ
+thống kê đổi theo; chip "Đang lọc …" có ✕; nhãn "Tổng chi (đã lọc)". "Hôm nay
+đã chi" và **hạn mức tháng luôn tính toàn bộ** (không bị lọc).
+
+**Giai đoạn 3 — Biểu đồ nâng cao (SVG/CSS thuần):** donut cơ cấu theo nhóm
+(chạm một nhóm để xem số tiền và % ở giữa), mỗi nhóm có ▲/▼ % so với kỳ trước;
+xu hướng 6 tháng có vạch hạn mức, chạm cột để nhảy sang tháng đó. Mỗi nhóm có
+màu riêng.
+
+**Giai đoạn 4 — Hoàn thiện giao diện:** kéo xuống để tải lại; khung xương khi tải
+lần đầu; banner "Đang offline — hiển thị dữ liệu đã lưu"; thẻ mẹo lần đầu (đóng
+được); chế độ Tự động/Sáng/Tối trong thẻ Tài khoản (lưu `pf_theme`); thời điểm
+đồng bộ cuối; rung nhẹ khi gửi/xoá (nơi hỗ trợ).
+
+**Hạn chế:** bộ lọc không lưu khi tải lại; kéo-để-tải-lại chỉ kích hoạt khi
+danh sách đang ở đầu; rung chỉ hoạt động trên trình duyệt hỗ trợ
+`navigator.vibrate` (iOS Safari không hỗ trợ).

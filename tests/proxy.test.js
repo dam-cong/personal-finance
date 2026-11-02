@@ -23,6 +23,7 @@ global.fetch = async (url, opts) => {
   else if (p.action === 'list') out = { ok: true, config: cfg, items };
   else if (p.action === 'add') out = { ok: true, item: { id: 99, username: p.username, content: p.content, amount: p.amount } };
   else if (p.action === 'delete') out = { ok: true };
+  else if (p.action === 'update') out = { ok: true, item: { id: p.id, username: 'x', content: p.content, amount: p.amount, created_at: p.created_at || 'cu' } };
   else if (p.action === 'setconfig') { Object.assign(cfg, p.values); out = { ok: true, config: cfg }; }
   else out = { ok: false, error: 'unknown_action' };
   return { json: async () => out };
@@ -75,6 +76,21 @@ function check(name, cond, extra) {
   r = await call({ action: 'add', content: 'Phở', amount: 60000, username: 'trangdt' }, bearer(session));
   check('add ok', r.status === 200 && r.body.item.username === 'hiendc', r);
   check('add gửi username từ session', calls[0].username === 'hiendc', calls);
+
+  // add chuyển tiếp created_at; update chỉ cho khoản của mình
+  calls = [];
+  r = await call({ action: 'add', content: 'Bù', amount: 1000, created_at: '2026-10-15T12:00:00+07:00' }, bearer(session));
+  check('add chuyển created_at', r.status === 200 && calls[0].created_at === '2026-10-15T12:00:00+07:00', calls);
+  calls = [];
+  r = await call({ action: 'update', id: 1, content: 'Cafe sửa', amount: 50000, created_at: '2026-10-14T12:00:00+07:00' }, bearer(session));
+  check('update khoản của mình', r.status === 200 && calls.some((c) => c.action === 'update' && c.content === 'Cafe sửa' && c.amount === 50000), r);
+  calls = [];
+  r = await call({ action: 'update', id: 2, content: 'x', amount: 1 }, bearer(session));
+  check('update khoản người khác → 403', r.status === 403 && !calls.some((c) => c.action === 'update'), r);
+  r = await call({ action: 'update', id: 777, content: 'x', amount: 1 }, bearer(session));
+  check('update không tồn tại → 404', r.status === 404, r);
+  r = await call({ action: 'update', id: 1, content: 'x', amount: 1 });
+  check('update thiếu session → 401', r.status === 401, r);
 
   // delete: chỉ xoá khoản của mình
   calls = [];

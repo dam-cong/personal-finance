@@ -54,6 +54,7 @@ function handle_(p) {
   try {
     if (p.action === 'list') return json_({ ok: true, config: readConfig_(), items: readItems_() });
     if (p.action === 'add') return json_(add_(p));
+    if (p.action === 'update') return json_(update_(p));
     if (p.action === 'delete') return json_(remove_(p));
     if (p.action === 'setconfig') return json_(setConfig_(p));
     return json_({ ok: false, error: 'unknown_action' });
@@ -140,20 +141,59 @@ function readItems_() {
   return items;
 }
 
+// created_at tuỳ chọn khi ghi bù: dạng 2026-10-15T12:00:00+07:00, không ở tương lai, không quá 5 năm.
+function validCreatedAt_(s) {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+07:00$/.test(s)) return false;
+  var t = new Date(s).getTime();
+  var now = Date.now();
+  return isFinite(t) && t <= now + 10 * 60 * 1000 && t >= now - 5 * 365 * 86400000;
+}
+
 function add_(p) {
   var content = String(p.content || '').trim();
   var username = String(p.username || '').trim();
   var amount = Number(p.amount);
-  if (!content || !username || !isFinite(amount) || amount <= 0 || Math.floor(amount) !== amount) {
+  if (!content || content.length > 200 || !username || !isFinite(amount) || amount <= 0 || Math.floor(amount) !== amount) {
     return { ok: false, error: 'invalid' };
   }
-  var item = { id: Date.now(), created_at: isoNow_(), username: username, content: content, amount: amount };
+  var created = isoNow_();
+  if (p.created_at) {
+    if (!validCreatedAt_(String(p.created_at))) return { ok: false, error: 'invalid' };
+    created = String(p.created_at);
+  }
+  var item = { id: Date.now(), created_at: created, username: username, content: content, amount: amount };
   var sh = txSheet_();
   var row = sh.getLastRow() + 1;
   // Định dạng text trước khi ghi để "=1+1" lưu thành chữ, không thành công thức.
   sh.getRange(row, 1, 1, 6).setNumberFormats([['0', '@', '@', '@', '0', 'General']]);
   sh.getRange(row, 1, 1, 6).setValues([[item.id, item.created_at, item.username, item.content, item.amount, false]]);
   return { ok: true, item: item };
+}
+
+// Sửa nội dung / số tiền / ngày của một khoản (không đổi người nhập).
+function update_(p) {
+  var id = Number(p.id);
+  var content = String(p.content || '').trim();
+  var amount = Number(p.amount);
+  if (!content || content.length > 200 || !isFinite(amount) || amount <= 0 || Math.floor(amount) !== amount) {
+    return { ok: false, error: 'invalid' };
+  }
+  var created = p.created_at ? String(p.created_at) : '';
+  if (created && !validCreatedAt_(created)) return { ok: false, error: 'invalid' };
+  var sh = txSheet_();
+  if (sh.getLastRow() < 2) return { ok: false, error: 'not_found' };
+  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (Number(r[0]) !== id || r[5] === true || String(r[5]).toUpperCase() === 'TRUE') continue;
+    var row = i + 2;
+    if (created) sh.getRange(row, 2).setNumberFormat('@').setValue(created);
+    sh.getRange(row, 4).setNumberFormat('@').setValue(content);
+    sh.getRange(row, 5).setValue(amount);
+    var at = created || (r[1] instanceof Date ? Utilities.formatDate(r[1], TZ, "yyyy-MM-dd'T'HH:mm:ssXXX") : String(r[1]));
+    return { ok: true, item: { id: id, created_at: at, username: String(r[2]), content: content, amount: amount } };
+  }
+  return { ok: false, error: 'not_found' };
 }
 
 function remove_(p) {
