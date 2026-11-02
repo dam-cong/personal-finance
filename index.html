@@ -12,7 +12,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="FamFin">
-<script>try { var th = localStorage.getItem('pf_theme'); if (th === 'light' || th === 'dark') document.documentElement.dataset.theme = th; } catch (e) {}</script>
+<script>
+try { var th = localStorage.getItem('pf_theme'); if (th === 'light' || th === 'dark') document.documentElement.dataset.theme = th; } catch (e) {}
+// Chạy dạng app ngoài Màn hình chính: cần chừa thêm chỗ dưới vùng mờ của thanh trạng thái
+try { if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone'); } catch (e) {}
+</script>
 <style>
   :root {
     --primary: #2563eb; --primary-dark: #1e3a8a;
@@ -292,6 +296,7 @@
   /* ---------- desktop: Chat + Dashboard cạnh nhau ---------- */
   /* mobile: ẩn header + footer, dành toàn bộ diện tích cho nội dung */
   @media (max-width: 1023px) {
+    .standalone .mbar { padding-top: calc(26px + env(safe-area-inset-top, 0px)); }
     .hero { display: none; }
     .mbar { display: flex; }
     #main { margin-top: 0; }
