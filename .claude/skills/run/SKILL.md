@@ -1,108 +1,52 @@
 ---
 name: run
-description: Build và chạy app Personal Finance Chat (backend Go + frontend React) trên máy dev Windows này. Dùng khi cần khởi động app để xem thay đổi UI/API, hoặc khi cần build lại frontend sau khi sửa code và đồng bộ vào server đang chạy.
+description: Chạy app FamFin (Personal Finance) trên máy dev Windows này bằng dev-server Node. Dùng khi cần khởi động app để xem thay đổi UI/API hoặc khi người dùng báo đăng nhập lỗi "mất kết nối mạng".
 ---
 
-# Chạy app Personal Finance Chat (dev, Windows + WSL)
+# Chạy app FamFin (dev, Windows)
 
-## Bối cảnh môi trường (quan trọng, đọc trước khi làm)
+## Bối cảnh
 
-- `bin/pf-server` là **binary Linux (ELF)** — không chạy trực tiếp trên Windows.
-  Phải chạy qua **WSL, distro `Ubuntu`** (không phải `docker-desktop`, distro
-  đó không dùng để chạy app).
-- Máy dev Windows này **không có Go toolchain** (không có trên Windows, không
-  có trong WSL Ubuntu) và **Docker Desktop engine không chạy** (`docker ps`
-  báo lỗi kết nối pipe). Vì vậy **không thể `go build` lại `bin/pf-server`**
-  trong môi trường này — chỉ có thể chạy binary đã build sẵn có trong
-  `bin/pf-server`. Nếu cần build lại backend (sau khi sửa code Go), phải báo
-  cho người dùng biết là cần Go toolchain hoặc Docker daemon, không tự ý tìm
-  cách khác để "né" việc thiếu công cụ.
-- Frontend (`frontend/`) build bình thường bằng Node/npm ngay trên Windows,
-  không cần WSL.
-- Server đọc file tĩnh frontend (`frontend/dist`) **trực tiếp từ đĩa mỗi khi
-  có request** — không cache/embed cứng. Nghĩa là: sau khi sửa frontend, chỉ
-  cần `npm run build` lại là server đang chạy sẽ tự phục vụ bản mới, **không
-  cần restart** `pf-server`. Luôn dùng cách kiểm tra ở Bước 4 để xác nhận
-  thay vì đoán.
+- App là **site tĩnh + 1 hàm `api/pf.js`** (proxy đăng nhập tới Apps Script),
+  không còn backend Go/frontend React, không cần build, không cần WSL/Docker.
+- `dev-server.js` (Node ≥ 20) đọc `.env.local` (`APPS_SCRIPT_URL`, `APPS_TOKEN`),
+  phục vụ file tĩnh ở thư mục gốc và gắn `api/pf.js` tại `/api/pf`.
+- **Không mở `index.html` bằng `file://`** — không có `/api/pf` nên đăng nhập
+  báo "mất kết nối mạng". Luôn truy cập qua `http://localhost:8000`.
 
-## Bước 1 — Kiểm tra xem app đã chạy chưa (tránh chạy trùng)
+## Bước 1 — Kiểm tra đã chạy chưa
 
 ```bash
-wsl.exe -d Ubuntu -e bash -c "ps aux | grep pf-server | grep -v grep"
+curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8000/
 ```
 
-Nếu đã có tiến trình `pf-server` đang chạy: **không tự ý kill để chạy lại**
-— server này có thể đang phục vụ người dùng thật trong nhà (vd: hiendc,
-trangdt đang chat/xem dashboard). Hỏi xin phép người dùng trước khi restart
-(xem mục "Restart khi cần" bên dưới). Nếu chưa có gì chạy, sang Bước 2.
+`HTTP 200` → đã chạy, không khởi động lại. Nếu cần restart, hỏi người dùng
+trước khi kill tiến trình `node dev-server.js`.
 
-## Bước 2 — Build frontend
+## Bước 2 — Khởi động
 
 ```bash
-cd /d/sourcecode/personal-finance/frontend
-npm install   # phòng khi node_modules bị thiếu/hỏng (đã từng gặp: tsc "not recognized")
-npm run build
+cd /d/sourcecode/personal-finance
+(nohup node dev-server.js > dev-server.log 2>&1 &)
+sleep 2; cat dev-server.log
 ```
 
-Kiểm tra build thành công (không lỗi tsc/vite), output vào `frontend/dist/`.
+Đổi cổng bằng biến `PORT` nếu 8000 bị chiếm. Nếu thiếu `.env.local`, log báo
+"Không đọc được .env.local" — nhắc người dùng tạo file với 2 biến trên (không
+in giá trị ra màn hình).
 
-## Bước 3 — Khởi động backend (nếu chưa chạy)
-
-Server phải chạy với **working directory là `backend/`** (không phải root
-repo) — các đường dẫn tương đối trong `.env` (`DATA_FILE=data/data.json`) và
-static file serving (`../frontend/dist`) đều tính từ đó.
+## Bước 3 — Kiểm tra
 
 ```bash
-wsl.exe -d Ubuntu -e bash -c "cd /mnt/d/sourcecode/personal-finance/backend && nohup /mnt/d/sourcecode/personal-finance/bin/pf-server > server.log 2>&1 & disown; sleep 1; ps aux | grep pf-server | grep -v grep"
+curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8000/
 ```
 
-Log ghi vào `backend/server.log`.
+Kỳ vọng `HTTP 200`, rồi báo người dùng mở **http://localhost:8000**.
+Không tự đăng nhập thử, vì việc đó gọi Google Sheet thật.
 
-## Bước 4 — Kiểm tra app đã chạy đúng
+## Ghi chú
 
-```bash
-curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8080/
-curl -s http://localhost:8080/api/config
-```
-
-Kỳ vọng: `HTTP 200` và JSON `{"app_name":"...","household_name":"..."}`.
-
-Nếu vừa sửa frontend và muốn xác nhận server đã phục vụ bản build mới nhất
-(không chỉ là cache cũ), so sánh tên file hash trong `frontend/dist/index.html`
-với file server thực sự trả về:
-
-```bash
-grep -o 'index-[A-Za-z0-9_-]*\.\(js\|css\)' frontend/dist/index.html
-curl -s http://localhost:8080/ | grep -o 'index-[A-Za-z0-9_-]*\.\(js\|css\)'
-```
-
-Hai kết quả phải khớp nhau.
-
-## Dev nhanh cho frontend (hot reload, không cần build/restart backend)
-
-Nếu chỉ đang lặp lại chỉnh sửa UI và muốn xem live mà không build/deploy mỗi
-lần, chạy Vite dev server (cần backend ở Bước 3 đã chạy để proxy `/api`):
-
-```bash
-cd /d/sourcecode/personal-finance/frontend
-npm run dev
-```
-
-Mở `http://localhost:5173` (Vite tự proxy `/api` → `http://localhost:8080`
-theo cấu hình `vite.config.ts`).
-
-## Restart khi cần (PHẢI xin phép người dùng trước)
-
-Chỉ restart khi người dùng đồng ý rõ ràng — server có thể đang phục vụ
-người dùng thật. Cách restart:
-
-```bash
-wsl.exe -d Ubuntu -e bash -c "pkill -f pf-server; sleep 1; cd /mnt/d/sourcecode/personal-finance/backend && nohup /mnt/d/sourcecode/personal-finance/bin/pf-server > server.log 2>&1 & disown"
-```
-
-## Ghi chú khác
-
-- Có 2 WSL distro trên máy này: `Ubuntu` (dùng để chạy app) và
-  `docker-desktop` (nội bộ của Docker Desktop, không dùng trực tiếp).
-- Không dùng `docker compose up` ở môi trường này trừ khi Docker Desktop
-  engine đang chạy thật (`docker ps` không lỗi) — hiện tại engine không chạy.
+- Sửa `index.html`/`parser.js` chỉ cần tải lại trang (server gửi `no-store`);
+  sửa `api/pf.js` cần restart server.
+- Thay thế: `npx vercel dev` nếu đã đăng nhập Vercel.
+- Kiểm thử liên quan xem `tests/` và `CLAUDE.md`.

@@ -57,6 +57,10 @@ function handle_(p) {
     if (p.action === 'update') return json_(update_(p));
     if (p.action === 'delete') return json_(remove_(p));
     if (p.action === 'setconfig') return json_(setConfig_(p));
+    if (p.action === 'habit_list') return json_(habitList_(p));
+    if (p.action === 'habit_save') return json_(habitSave_(p));
+    if (p.action === 'habit_delete') return json_(habitDelete_(p));
+    if (p.action === 'habit_check') return json_(habitCheck_(p));
     return json_({ ok: false, error: 'unknown_action' });
   } catch (err) {
     return json_({ ok: false, error: 'server_error' });
@@ -208,4 +212,134 @@ function remove_(p) {
     }
   }
   return { ok: false, error: 'not_found' };
+}
+
+/* ---------- Check-list công việc hằng ngày ---------- */
+// Tab habits: id | username | name | emoji | days | created_date | ended_date
+// Tab habit_logs: date | habit_id | username (có dòng = đã xong). Mọi truy vấn lọc theo username.
+var HABIT_SHEET = 'habits';
+var LOG_SHEET = 'habit_logs';
+var HABIT_HEADER = ['id', 'username', 'name', 'emoji', 'days', 'created_date', 'ended_date'];
+var LOG_HEADER = ['date', 'habit_id', 'username'];
+
+function ensureSheet_(name, header) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(name);
+  if (!sh) sh = ss.insertSheet(name);
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, header.length).setNumberFormat('@').setValues([header]);
+    sh.getRange(2, 1, sh.getMaxRows() - 1, header.length).setNumberFormat('@'); // chữ thuần: không thành ngày/công thức
+  }
+  return sh;
+}
+
+function todayVN_() { return Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'); }
+function dateText_(v) { return v instanceof Date ? Utilities.formatDate(v, TZ, 'yyyy-MM-dd') : String(v); }
+function dateAdd_(s, n) {
+  var t = new Date(s + 'T00:00:00+07:00').getTime() + n * 86400000;
+  return Utilities.formatDate(new Date(t), TZ, 'yyyy-MM-dd');
+}
+function validDays_(s) {
+  var parts = String(s).split(',');
+  var seen = {};
+  for (var i = 0; i < parts.length; i++) {
+    if (!/^[1-7]$/.test(parts[i]) || seen[parts[i]]) return false;
+    seen[parts[i]] = true;
+  }
+  return parts.length > 0;
+}
+
+function readHabits_(username) {
+  var sh = ensureSheet_(HABIT_SHEET, HABIT_HEADER);
+  if (sh.getLastRow() < 2) return [];
+  var out = [];
+  sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues().forEach(function (r, i) {
+    if (r[0] === '' || String(r[1]) !== username) return;
+    out.push({ row: i + 2, id: Number(r[0]), name: String(r[2]), emoji: String(r[3]), days: String(r[4]),
+               created_date: dateText_(r[5]), ended_date: r[6] === '' ? '' : dateText_(r[6]) });
+  });
+  return out;
+}
+function publicHabit_(h) {
+  return { id: h.id, name: h.name, emoji: h.emoji, days: h.days, created_date: h.created_date, ended_date: h.ended_date };
+}
+
+// Trả về việc của người dùng (cả việc đã kết thúc nếu còn nằm trong khoảng cần xem) và các lần đã tích từ "since".
+function habitList_(p) {
+  var username = String(p.username || '').trim();
+  if (!username) return { ok: false, error: 'invalid' };
+  var today = todayVN_();
+  var since = /^\d{4}-\d{2}-\d{2}$/.test(String(p.since || '')) ? String(p.since) : dateAdd_(today, -120);
+  var habits = readHabits_(username).filter(function (h) { return !h.ended_date || h.ended_date > since; }).map(publicHabit_);
+  var logs = [];
+  var sh = ensureSheet_(LOG_SHEET, LOG_HEADER);
+  if (sh.getLastRow() >= 2) {
+    sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().forEach(function (r) {
+      if (String(r[2]) !== username) return;
+      var d = dateText_(r[0]);
+      if (d >= since) logs.push({ date: d, habit_id: Number(r[1]) });
+    });
+  }
+  return { ok: true, today: today, habits: habits, logs: logs };
+}
+
+// Thêm mới (không có id) hoặc sửa tên/biểu tượng/thứ trong tuần của việc thuộc về chính người dùng.
+function habitSave_(p) {
+  var username = String(p.username || '').trim();
+  var name = String(p.name || '').trim();
+  var emoji = String(p.emoji || '').trim();
+  var days = String(p.days || '').trim();
+  if (!username || !name || name.length > 60 || emoji.length > 8 || !validDays_(days)) return { ok: false, error: 'invalid' };
+  var sh = ensureSheet_(HABIT_SHEET, HABIT_HEADER);
+  if (p.id) {
+    var mine = readHabits_(username).filter(function (h) { return h.id === Number(p.id) && !h.ended_date; })[0];
+    if (!mine) return { ok: false, error: 'not_found' };
+    sh.getRange(mine.row, 3, 1, 3).setNumberFormat('@').setValues([[name, emoji, days]]);
+    mine.name = name; mine.emoji = emoji; mine.days = days;
+    return { ok: true, habit: publicHabit_(mine) };
+  }
+  var h = { id: Date.now(), name: name, emoji: emoji, days: days, created_date: todayVN_(), ended_date: '' };
+  var row = sh.getLastRow() + 1;
+  sh.getRange(row, 1, 1, 7).setNumberFormat('@').setValues([[h.id, username, h.name, h.emoji, h.days, h.created_date, '']]);
+  return { ok: true, habit: h };
+}
+
+// Xoá = ghi ngày kết thúc (hôm nay), giữ lịch sử để tỷ lệ các ngày cũ không đổi.
+function habitDelete_(p) {
+  var username = String(p.username || '').trim();
+  var mine = readHabits_(username).filter(function (h) { return h.id === Number(p.id) && !h.ended_date; })[0];
+  if (!mine) return { ok: false, error: 'not_found' };
+  ensureSheet_(HABIT_SHEET, HABIT_HEADER).getRange(mine.row, 7).setNumberFormat('@').setValue(todayVN_());
+  return { ok: true };
+}
+
+// Tích / bỏ tích một việc cho một ngày (idempotent). Chỉ nhận ngày không ở tương lai và không quá 31 ngày trước.
+function habitCheck_(p) {
+  var username = String(p.username || '').trim();
+  var date = String(p.date || '');
+  var id = Number(p.habit_id);
+  var today = todayVN_();
+  if (!username || !/^\d{4}-\d{2}-\d{2}$/.test(date) || date > today || date < dateAdd_(today, -31)) return { ok: false, error: 'invalid' };
+  var mine = readHabits_(username).filter(function (h) { return h.id === id; })[0];
+  if (!mine) return { ok: false, error: 'not_found' };
+  var sh = ensureSheet_(LOG_SHEET, LOG_HEADER);
+  var found = 0;
+  if (sh.getLastRow() >= 2) {
+    var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
+    for (var i = rows.length - 1; i >= 0; i--) {
+      if (dateText_(rows[i][0]) === date && Number(rows[i][1]) === id && String(rows[i][2]) === username) {
+        found = i + 2;
+        break;
+      }
+    }
+  }
+  if (p.done) {
+    if (!found) {
+      var row = sh.getLastRow() + 1;
+      sh.getRange(row, 1, 1, 3).setNumberFormat('@').setValues([[date, id, username]]);
+    }
+  } else if (found) {
+    sh.deleteRow(found);
+  }
+  return { ok: true };
 }

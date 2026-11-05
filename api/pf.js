@@ -134,6 +134,23 @@ async function handler(req, res) {
       if (d.ok) d.config = publicConfig(d.config);
       return send(res, d.ok ? 200 : 400, d);
     }
+    // Check-list hằng ngày: username luôn lấy từ session, không nhận từ trình duyệt.
+    if (b.action === 'habit_list') {
+      const d = await gas({ action: 'habit_list', username: user, since: b.since });
+      return send(res, d.ok ? 200 : 400, d);
+    }
+    if (b.action === 'habit_save') {
+      const d = await gas({ action: 'habit_save', username: user, id: b.id, name: b.name, emoji: b.emoji, days: b.days });
+      return send(res, d.ok ? 200 : 400, d);
+    }
+    if (b.action === 'habit_delete') {
+      const d = await gas({ action: 'habit_delete', username: user, id: b.id });
+      return send(res, d.ok ? 200 : 400, d);
+    }
+    if (b.action === 'habit_check') {
+      const d = await gas({ action: 'habit_check', username: user, habit_id: b.habit_id, date: b.date, done: !!b.done });
+      return send(res, d.ok ? 200 : 400, d);
+    }
     return send(res, 400, { ok: false, error: 'unknown_action' });
   } catch (err) {
     return send(res, 502, { ok: false, error: 'upstream_error' });

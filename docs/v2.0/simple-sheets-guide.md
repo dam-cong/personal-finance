@@ -297,3 +297,7 @@ chặn ngay người đang đăng nhập, đổi `APPS_TOKEN` trên Vercel).
 - **Sáng/Tối:** nút tròn chữ cái đầu (mobile) hoặc ở header (desktop) → thẻ
   **Tài khoản** → Giao diện: Tự động / Sáng / Tối.
 - Các tính năng này chỉ cần deploy Vercel, **không** cần cập nhật Apps Script.
+
+## Cập nhật khi thêm chức năng "Hằng ngày"
+
+Sau khi có bản `Code.gs` mới: dán đè vào Apps Script → **Deploy → Manage deployments → Edit → New version → Deploy** (URL giữ nguyên). Hai tab `habits` và `habit_logs` tự tạo ở lần dùng đầu tiên, không cần chạy lại `setup()`.

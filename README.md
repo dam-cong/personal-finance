@@ -45,6 +45,14 @@ Site tĩnh + một Vercel function (`api/pf.js`), không cần build.
 
 URL Apps Script và mã chung chỉ nằm ở server Vercel, không gửi xuống trình duyệt.
 
+## Việc hằng ngày (check-list)
+
+Tab **Hằng ngày** (thanh tab dưới trên điện thoại, nút chuyển *Thống kê | Hằng ngày* trên máy tính): mỗi tài khoản tự lập việc (tập thể dục, đọc sách…), chọn các thứ trong tuần, tích khi xong, xem vòng tiến độ, chuỗi ngày liên tiếp và biểu đồ tỷ lệ hoàn thành 7/30 ngày. Dữ liệu nằm ở 2 tab `habits` và `habit_logs` trong Google Sheet (tự tạo lần đầu). **Cần dán `apps-script/Code.gs` mới và deploy phiên bản mới** để dùng chức năng này.
+
+## Dùng như app trên điện thoại
+
+Mở site bằng trình duyệt điện thoại rồi **Thêm vào màn hình chính** (iOS: Chia sẻ → Thêm vào MH chính; Android: nút *Cài app* trong tab Tài khoản). App có thanh tab dưới, mở được khi mất mạng (service worker `sw.js`) và tự gửi các khoản đã nhập lúc offline khi có mạng lại. Cập nhật code không cần cài lại.
+
 ## Chạy thử trên máy
 
 Đặt 2 biến trên vào `.env.local` (không commit), rồi:

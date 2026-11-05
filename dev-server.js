@@ -21,7 +21,7 @@ const types = {
   '.ico': 'image/x-icon', '.svg': 'image/svg+xml',
 };
 // Chỉ phục vụ các file của app, không lộ .env.local, api/, tests/...
-const PUBLIC = /^\/(index\.html|parser\.js|favicon\.ico|manifest\.webmanifest|icons\/[\w.-]+)?$/;
+const PUBLIC = /^\/(index\.html|parser\.js|habits\.js|sw\.js|favicon\.ico|manifest\.webmanifest|icons\/[\w.-]+)?$/;
 
 http.createServer((req, res) => {
   const url = (req.url || '/').split('?')[0];

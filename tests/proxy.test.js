@@ -25,6 +25,9 @@ global.fetch = async (url, opts) => {
   else if (p.action === 'delete') out = { ok: true };
   else if (p.action === 'update') out = { ok: true, item: { id: p.id, username: 'x', content: p.content, amount: p.amount, created_at: p.created_at || 'cu' } };
   else if (p.action === 'setconfig') { Object.assign(cfg, p.values); out = { ok: true, config: cfg }; }
+  else if (p.action === 'habit_list') out = { ok: true, today: '2026-11-05', habits: [], logs: [] };
+  else if (p.action === 'habit_save') out = { ok: true, habit: { id: p.id || 5, name: p.name, emoji: p.emoji, days: p.days } };
+  else if (p.action === 'habit_delete' || p.action === 'habit_check') out = { ok: true };
   else out = { ok: false, error: 'unknown_action' };
   return { json: async () => out };
 };
@@ -106,6 +109,23 @@ function check(name, cond, extra) {
   check('setconfig ok', r.status === 200 && cfg.household_name === 'Mới', r);
   check('setconfig chặn users', cfg.users === 'hiendc:1998,trangdt:1999' && cfg.evil === undefined, cfg);
   check('setconfig trả users đã ẩn mật khẩu', r.body.config.users === 'hiendc,trangdt', r.body.config);
+
+  // check-list hằng ngày: username luôn lấy từ session
+  calls = [];
+  r = await call({ action: 'habit_list', username: 'trangdt', since: '2026-10-01' }, bearer(session));
+  check('habit_list ok', r.status === 200 && calls[0].username === 'hiendc' && calls[0].since === '2026-10-01', calls);
+  calls = [];
+  r = await call({ action: 'habit_save', username: 'trangdt', name: 'Đọc sách', emoji: '📚', days: '1,2,3' }, bearer(session));
+  check('habit_save dùng username từ session', r.status === 200 && calls[0].username === 'hiendc' && calls[0].name === 'Đọc sách', calls);
+  calls = [];
+  r = await call({ action: 'habit_check', username: 'trangdt', habit_id: 5, date: '2026-11-05', done: 1 }, bearer(session));
+  check('habit_check ép done thành boolean', r.status === 200 && calls[0].username === 'hiendc' && calls[0].done === true, calls);
+  r = await call({ action: 'habit_delete', id: 5 }, bearer(session));
+  check('habit_delete ok', r.status === 200, r);
+  for (const act of ['habit_list', 'habit_save', 'habit_delete', 'habit_check']) {
+    r = await call({ action: act });
+    check(act + ' thiếu session → 401', r.status === 401, r);
+  }
 
   // khác
   r = await call({ action: 'xyz' }, bearer(session));
