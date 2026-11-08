@@ -1,6 +1,6 @@
 // Service worker: để mở được app khi mất mạng. Network-first nên online luôn là bản mới nhất,
 // cập nhật code không cần người dùng cài lại. Không bao giờ cache /api/pf (dữ liệu và phiên đăng nhập).
-const CACHE = 'famfin-shell-v2';
+const CACHE = 'famfin-shell-v3';
 const SHELL = ['/', '/parser.js', '/habits.js', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
@@ -30,5 +30,33 @@ self.addEventListener('fetch', (e) => {
         return res;
       })
       .catch(() => caches.match(req.mode === 'navigate' ? '/' : req, { ignoreSearch: true }))
+  );
+});
+
+// Thông báo đẩy: hiện thông báo, báo cho các tab đang mở tự làm mới, chạm vào thì mở đúng màn.
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(Promise.all([
+    self.registration.showNotification(d.title || 'FamFin', {
+      body: d.body || '',
+      icon: '/icons/icon-192.png',
+      tag: d.tag || undefined,
+      renotify: !!d.tag,
+      data: { url: d.url || '/' },
+    }),
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => cs.forEach((c) => c.postMessage({ type: 'push' }))),
+  ]));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => {
+      const c = cs.find((x) => 'focus' in x);
+      if (c) { c.postMessage({ type: 'go', url: url }); return c.focus(); }
+      return self.clients.openWindow(url);
+    })
   );
 });

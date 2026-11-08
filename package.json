@@ -1,5 +1,9 @@
 {
   "name": "famfin",
   "private": true,
-  "engines": { "node": ">=20" }
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@vercel/functions": "^2.0.0",
+    "web-push": "^3.6.7"
+  }
 }

@@ -4,6 +4,9 @@
   "buildCommand": "",
   "outputDirectory": ".",
   "cleanUrls": true,
+  "crons": [
+    { "path": "/api/remind", "schedule": "0 13 * * *" }
+  ],
   "headers": [
     {
       "source": "/sw.js",

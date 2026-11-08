@@ -301,3 +301,11 @@ chặn ngay người đang đăng nhập, đổi `APPS_TOKEN` trên Vercel).
 ## Cập nhật khi thêm chức năng "Hằng ngày"
 
 Sau khi có bản `Code.gs` mới: dán đè vào Apps Script → **Deploy → Manage deployments → Edit → New version → Deploy** (URL giữ nguyên). Hai tab `habits` và `habit_logs` tự tạo ở lần dùng đầu tiên, không cần chạy lại `setup()`.
+
+## Cập nhật khi thêm "Thông báo đẩy"
+
+1. Mở Google Sheet → **Tiện ích mở rộng → Apps Script**.
+2. Mở file `Code.gs`, bấm vào code, **Ctrl+A** rồi dán đè toàn bộ nội dung `apps-script/Code.gs` mới, bấm **Lưu** (Ctrl+S).
+3. **Triển khai → Quản lý phương thức triển khai** → bấm biểu tượng bút chì ✏️ của deployment *Ứng dụng web* đang hoạt động → **Phiên bản: Phiên bản mới** → **Triển khai**. URL giữ nguyên.
+   Nếu chưa có deployment nào đang hoạt động: **Triển khai → Tùy chọn triển khai mới → Ứng dụng web** (Thực thi: *Tôi*, Truy cập: *Bất kỳ ai*) và cập nhật `APPS_SCRIPT_URL`.
+4. Không cần chạy lại `setup()` và không cần cấp thêm quyền. Tab `push_subs` tự tạo khi có thiết bị bật thông báo đầu tiên.

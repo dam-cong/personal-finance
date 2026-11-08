@@ -411,6 +411,17 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
   #habitForm .err { min-height: 0; }
   #habitForm .err:empty { display: none; }
   #habitForm .link { padding: 4px; }
+  /* thông báo đẩy (màn Tài khoản, chỉ hiện trên điện thoại) */
+  .notif { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .trow { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 600; padding: 6px 4px; }
+  .sw { position: relative; width: 50px; height: 30px; flex: none; display: block; }
+  .sw input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer; z-index: 1; }
+  .sw i { position: absolute; inset: 0; border-radius: 9999px; background: color-mix(in srgb, var(--muted) 40%, transparent); transition: background .2s; pointer-events: none; }
+  .sw i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); transition: transform .2s; }
+  .sw input:checked + i { background: var(--primary); }
+  .sw input:checked + i::after { transform: translateX(20px); }
+  .sw input:focus-visible + i { box-shadow: 0 0 0 2px var(--primary); }
+  .nbtns { display: flex; justify-content: space-between; }
   .presets.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .presets.scroll::-webkit-scrollbar { display: none; }
   .presets button { flex: none; }
@@ -527,6 +538,16 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
     <div class="syncinfo" id="syncInfo"></div>
     <button class="btn withic hidden" id="btnInstall" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Cài app lên màn hình chính</button>
     <div class="syncinfo hidden" id="installHint">Cài app: bấm nút Chia sẻ trong Safari rồi chọn “Thêm vào MH chính”.</div>
+    <div class="notif hidden" id="notifBox">
+      <div class="field"><label>Thông báo trên thiết bị này</label></div>
+      <div class="hidden" id="notifOn">
+        <div class="trow"><span>Khoản chi mới của người khác</span><label class="sw"><input type="checkbox" id="swSpend" aria-label="Thông báo khoản chi mới"><i></i></label></div>
+        <div class="trow"><span>Nhắc việc hằng ngày lúc 20:00</span><label class="sw"><input type="checkbox" id="swHabit" aria-label="Nhắc việc hằng ngày"><i></i></label></div>
+        <div class="nbtns"><button class="link" id="btnNotifTest" type="button">Gửi thử</button><button class="link danger" id="btnNotifOff" type="button">Tắt thông báo</button></div>
+      </div>
+      <button class="btn withic hidden" id="btnNotifOn" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Bật thông báo</button>
+      <div class="syncinfo" id="notifInfo"></div>
+    </div>
     <button class="btn withic" id="acctConfig" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Cấu hình nhà</button>
     <button class="btn danger withic" id="acctLogout" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>Đăng xuất</button>
     <button class="link back withic" id="acctCancel" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Quay lại</button>
@@ -819,6 +840,7 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
       not_found: 'Không tìm thấy khoản chi (có thể đã bị xoá).',
       unknown_action: 'Apps Script chưa cập nhật: hãy dán Code.gs mới và deploy phiên bản mới.',
       unauthorized: 'Phiên đăng nhập đã hết hạn.',
+      push_not_configured: 'Máy chủ chưa cấu hình khoá thông báo (VAPID) trên Vercel.',
       no_api: 'Không gọi được /api/pf. Hãy chạy bằng "npx vercel dev" hoặc dùng bản đã deploy.',
       network: 'Mất kết nối mạng, thử lại sau.'
     };
@@ -846,7 +868,17 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
   function refresh() {
     return load().then(function () { renderAll(false); if (state.tab === 'habit') loadHabits(); }).catch(function (err) { if (err.message !== 'unauthorized') setOnline(false); /* giữ dữ liệu đang hiển thị */ });
   }
+  function dropPushOnLogout(sess) {
+    if (!sess || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    navigator.serviceWorker.ready.then(function (r) { return r.pushManager.getSubscription(); }).then(function (sub) {
+      if (!sub) return;
+      fetch('/api/pf', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + sess },
+        body: JSON.stringify({ action: 'push_unsubscribe', endpoint: sub.endpoint }) }).catch(function () {});
+      return sub.unsubscribe();
+    }).catch(function () {});
+  }
   function logout(msg) {
+    dropPushOnLogout(state.session);
     store.del('pf_session'); store.del('pf_user'); store.del('pf_cache'); store.del('pf_queue'); queue = [];
     store.del('pf_habits'); store.del('pf_hq'); hq = []; hs.items = []; hs.logs = []; hs.done = {}; hs.loaded = false; hs.error = '';
     state.session = ''; state.user = ''; state.items = []; state.config = {};
@@ -916,7 +948,7 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
     show('login');
   }
   function openAcct() {
-    renderInstall();
+    renderInstall(); renderNotif();
     $('acctName').textContent = state.user;
     $('syncInfo').textContent = state.lastSync ? 'Đồng bộ lần cuối: ' + timeLabel(state.lastSync) + ' ' + dayLabel(state.lastSync).slice(0, 5) : '';
     show('acct');
@@ -1971,10 +2003,106 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
   $('dash').insertBefore(rswEl('dash'), $('dash').firstChild);
   attachPTR($('habit'));
 
+  /* ---------- Thông báo đẩy (chỉ điện thoại / máy tính bảng) ---------- */
+  function isMobileDevice() {
+    var ua = navigator.userAgent || '';
+    return /Android|iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1); // iPadOS giả Mac
+  }
+  function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+  function keyToBytes(b64) {
+    var pad4 = '='.repeat((4 - b64.length % 4) % 4);
+    var raw = atob((b64 + pad4).replace(/-/g, '+').replace(/_/g, '/'));
+    var out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  function pushSub() {
+    return navigator.serviceWorker.ready.then(function (r) { return r.pushManager.getSubscription(); });
+  }
+  function savePush(sub) {
+    var prefs = { spend: $('swSpend').checked, habit: $('swHabit').checked };
+    return call({ action: 'push_subscribe', subscription: sub.toJSON(), spend: prefs.spend, habit: prefs.habit, mobile: true })
+      .then(function () { store.set('pf_push', JSON.stringify(prefs)); });
+  }
+  function renderNotif() {
+    var mobile = isMobileDevice();
+    $('notifBox').classList.toggle('hidden', !mobile);
+    if (!mobile) return Promise.resolve(); // website trên máy tính không có thông báo
+    var info = $('notifInfo');
+    $('notifOn').classList.add('hidden'); $('btnNotifOn').classList.add('hidden'); info.textContent = '';
+    if (!pushSupported()) {
+      info.textContent = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)
+        ? 'Để nhận thông báo, hãy Thêm vào MH chính rồi mở app từ icon (cần iOS 16.4 trở lên).'
+        : 'Trình duyệt này chưa hỗ trợ thông báo.';
+      return Promise.resolve();
+    }
+    if (Notification.permission === 'denied') {
+      info.textContent = 'Thông báo đang bị chặn. Hãy bật lại trong cài đặt của trình duyệt hoặc của máy.';
+      return Promise.resolve();
+    }
+    return pushSub().then(function (sub) {
+      if (!sub) { $('btnNotifOn').classList.remove('hidden'); return; }
+      var saved = null;
+      try { saved = JSON.parse(store.get('pf_push') || 'null'); } catch (e) {}
+      $('swSpend').checked = saved ? !!saved.spend : true; $('swHabit').checked = saved ? !!saved.habit : true;
+      $('notifOn').classList.remove('hidden');
+      return call({ action: 'push_get', endpoint: sub.endpoint }).then(function (d) {
+        $('swSpend').checked = !!d.spend; $('swHabit').checked = !!d.habit;
+        store.set('pf_push', JSON.stringify({ spend: !!d.spend, habit: !!d.habit }));
+      }).catch(function (e) { if (e.message === 'not_found') return savePush(sub).catch(function () {}); }); // đồng bộ lại nếu Sheet chưa có
+    }).catch(function () {});
+  }
+  $('btnNotifOn').addEventListener('click', function () {
+    var btn = this; btn.disabled = true; $('notifInfo').textContent = '';
+    Notification.requestPermission().then(function (perm) {
+      if (perm !== 'granted') throw new Error('denied');
+      return call({ action: 'push_key' });
+    }).then(function (d) {
+      return navigator.serviceWorker.ready.then(function (reg) {
+        return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyToBytes(d.key) });
+      });
+    }).then(function (sub) {
+      $('swSpend').checked = true; $('swHabit').checked = true;
+      return savePush(sub);
+    }).then(function () { notice('🔔 Đã bật thông báo.'); })
+      .catch(function (e) {
+        $('notifInfo').textContent = e.message === 'denied' ? 'Bạn chưa cho phép thông báo.' : 'Không bật được thông báo: ' + friendly(e.message);
+      }).then(function () { btn.disabled = false; return renderNotif(); });
+  });
+  ['swSpend', 'swHabit'].forEach(function (id) {
+    $(id).addEventListener('change', function () {
+      var box = this;
+      pushSub().then(function (sub) { if (sub) return savePush(sub); }).catch(function (e) {
+        box.checked = !box.checked; // lưu lỗi thì trả công tắc về như cũ
+        $('notifInfo').textContent = friendly(e.message);
+      });
+    });
+  });
+  $('btnNotifTest').addEventListener('click', function () {
+    call({ action: 'push_test' }).then(function () { notice('Đã gửi thông báo thử, chờ vài giây.'); })
+      .catch(function (e) { notice(e.message === 'not_found' ? 'Thiết bị chưa đăng ký, hãy bật lại thông báo.' : friendly(e.message)); });
+  });
+  $('btnNotifOff').addEventListener('click', function () {
+    pushSub().then(function (sub) {
+      if (!sub) return;
+      return call({ action: 'push_unsubscribe', endpoint: sub.endpoint }).catch(function () {}).then(function () { return sub.unsubscribe(); });
+    }).then(function () { store.del('pf_push'); notice('Đã tắt thông báo trên thiết bị này.'); }).catch(function () {}).then(renderNotif);
+  });
+  // Service worker báo: có thông báo mới (làm mới dữ liệu) / người dùng chạm thông báo (mở đúng màn)
+  if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', function (ev) {
+    var m = ev.data || {};
+    if (m.type === 'push' && state.session) { refresh(); if (hs.loaded) loadHabits(); }
+    if (m.type === 'go' && state.session) {
+      var g = /[?&]go=(chat|dash|habit)/.exec(m.url || '');
+      if (g) { show('app'); gotoTab(g[1]); }
+    }
+  });
+
   /* ---------- Khởi động ---------- */
   state.session = store.get('pf_session'); state.user = store.get('pf_user');
   state.lastSync = +store.get('pf_sync') || 0;
-  if (/[?&]go=dash/.test(location.search)) state.tab = 'dash'; // lối tắt từ icon app
+  var goMatch = /[?&]go=(dash|habit)/.exec(location.search); // lối tắt từ icon app / thông báo
+  if (goMatch) state.tab = goMatch[1];
   loadQueue(); loadHabitCache();
   applyTheme(store.get('pf_theme'));
   var c0 = cachedData();

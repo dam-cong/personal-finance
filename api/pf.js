@@ -1,13 +1,19 @@
 // Proxy giữa trình duyệt và Google Apps Script.
 // URL + mã chung (TOKEN) chỉ nằm ở biến môi trường Vercel, không bao giờ gửi xuống trình duyệt.
 const crypto = require('crypto');
+const { env, gas } = require('./_gas');
+const push = require('./_push');
+
+// Chạy việc nền sau khi đã trả lời (Vercel cần waitUntil); chạy máy dev thì tiến trình vẫn sống nên không cần.
+let waitUntil = null;
+try { waitUntil = require('@vercel/functions').waitUntil; } catch (e) { /* không có thì bỏ qua */ }
+function background(promise) {
+  const p = Promise.resolve(promise).catch(function () { /* lỗi gửi thông báo không được làm hỏng thao tác chính */ });
+  if (waitUntil) { try { waitUntil(p); } catch (e) { /* ngoài môi trường Vercel */ } }
+}
 
 const SESSION_DAYS = 30;
 const ALLOWED_CFG = ['app_name', 'household_name', 'slogan', 'primary_color', 'monthly_budget'];
-
-function env() {
-  return { url: process.env.APPS_SCRIPT_URL || '', token: process.env.APPS_TOKEN || '' };
-}
 
 /* ---------- session ký HMAC ---------- */
 function key(token) { return crypto.createHash('sha256').update('pf-session|' + token).digest(); }
@@ -55,18 +61,6 @@ function publicConfig(cfg) {
   return out;
 }
 
-/* ---------- gọi Apps Script ---------- */
-async function gas(payload) {
-  const e = env();
-  const r = await fetch(e.url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(Object.assign({}, payload, { token: e.token })),
-    redirect: 'follow',
-  });
-  return r.json();
-}
-
 function send(res, status, obj) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -107,6 +101,7 @@ async function handler(req, res) {
     }
     if (b.action === 'add') {
       const d = await gas({ action: 'add', username: user, content: b.content, amount: b.amount, created_at: b.created_at });
+      if (d.ok && d.item) background(push.notifySpend(gas, user, d.item)); // báo cho người khác trong nhà
       return send(res, d.ok ? 200 : 400, d);
     }
     if (b.action === 'update') {
@@ -150,6 +145,29 @@ async function handler(req, res) {
     if (b.action === 'habit_check') {
       const d = await gas({ action: 'habit_check', username: user, habit_id: b.habit_id, date: b.date, done: !!b.done });
       return send(res, d.ok ? 200 : 400, d);
+    }
+    // Thông báo đẩy (chỉ thiết bị di động): luôn gắn với user trong session
+    if (b.action === 'push_key') {
+      if (!push.configured()) return send(res, 500, { ok: false, error: 'push_not_configured' });
+      return send(res, 200, { ok: true, key: push.config().pub });
+    }
+    if (b.action === 'push_subscribe') {
+      const sub = b.subscription || {}, keys = sub.keys || {};
+      if (b.mobile !== true || !sub.endpoint || !keys.p256dh || !keys.auth) return send(res, 400, { ok: false, error: 'invalid' });
+      const d = await gas({ action: 'push_save', username: user, endpoint: sub.endpoint, p256dh: keys.p256dh, auth: keys.auth, spend: !!b.spend, habit: !!b.habit });
+      return send(res, d.ok ? 200 : 400, d);
+    }
+    if (b.action === 'push_unsubscribe') {
+      const d = await gas({ action: 'push_remove', username: user, endpoint: String(b.endpoint || '') });
+      return send(res, 200, { ok: true, removed: !!d.ok });
+    }
+    if (b.action === 'push_get') {
+      const d = await gas({ action: 'push_get', username: user, endpoint: String(b.endpoint || '') });
+      return send(res, d.ok ? 200 : 404, d);
+    }
+    if (b.action === 'push_test') {
+      const d = await push.sendTest(gas, user);
+      return send(res, d.ok ? 200 : (d.error === 'not_found' ? 404 : 400), d);
     }
     return send(res, 400, { ok: false, error: 'unknown_action' });
   } catch (err) {

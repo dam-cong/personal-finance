@@ -61,6 +61,12 @@ function handle_(p) {
     if (p.action === 'habit_save') return json_(habitSave_(p));
     if (p.action === 'habit_delete') return json_(habitDelete_(p));
     if (p.action === 'habit_check') return json_(habitCheck_(p));
+    if (p.action === 'push_save') return json_(pushSave_(p));
+    if (p.action === 'push_remove') return json_(pushRemove_(p));
+    if (p.action === 'push_get') return json_(pushGet_(p));
+    if (p.action === 'push_list') return json_(pushList_());
+    if (p.action === 'push_mark') return json_(pushMark_(p));
+    if (p.action === 'habit_all') return json_(habitAll_(p));
     return json_({ ok: false, error: 'unknown_action' });
   } catch (err) {
     return json_({ ok: false, error: 'server_error' });
@@ -342,4 +348,104 @@ function habitCheck_(p) {
     sh.deleteRow(found);
   }
   return { ok: true };
+}
+
+/* ---------- Thông báo đẩy (chỉ server Vercel gọi, có TOKEN) ---------- */
+// Tab push_subs: id | username | endpoint | p256dh | auth | spend | habit | created_at | last_habit_date
+// spend / habit = '1' hoặc '0' (người dùng bật loại thông báo nào). last_habit_date để mỗi ngày chỉ nhắc một lần.
+var PUSH_SHEET = 'push_subs';
+var PUSH_HEADER = ['id', 'username', 'endpoint', 'p256dh', 'auth', 'spend', 'habit', 'created_at', 'last_habit_date'];
+
+function readPush_() {
+  var sh = ensureSheet_(PUSH_SHEET, PUSH_HEADER);
+  if (sh.getLastRow() < 2) return [];
+  var out = [];
+  sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().forEach(function (r, i) {
+    if (r[2] === '') return;
+    out.push({ row: i + 2, id: Number(r[0]), username: String(r[1]), endpoint: String(r[2]), p256dh: String(r[3]), auth: String(r[4]),
+               spend: String(r[5]) === '1', habit: String(r[6]) === '1', last_habit_date: r[8] === '' ? '' : dateText_(r[8]) });
+  });
+  return out;
+}
+function findPush_(endpoint, username) {
+  var list = readPush_();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].endpoint === endpoint && (!username || list[i].username === username)) return list[i];
+  }
+  return null;
+}
+function publicPush_(s) {
+  return { username: s.username, endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth, spend: s.spend, habit: s.habit, last_habit_date: s.last_habit_date };
+}
+
+// Lưu hoặc cập nhật đăng ký của một thiết bị (khoá theo endpoint).
+function pushSave_(p) {
+  var username = String(p.username || '').trim();
+  var endpoint = String(p.endpoint || '');
+  var p256dh = String(p.p256dh || '');
+  var auth = String(p.auth || '');
+  var b64 = /^[A-Za-z0-9_-]{8,200}$/;
+  if (!username || !/^https:\/\//.test(endpoint) || endpoint.length > 1000 || !b64.test(p256dh) || !b64.test(auth)) {
+    return { ok: false, error: 'invalid' };
+  }
+  var spend = p.spend ? '1' : '0';
+  var habit = p.habit ? '1' : '0';
+  var sh = ensureSheet_(PUSH_SHEET, PUSH_HEADER);
+  var cur = findPush_(endpoint);
+  if (cur) {
+    sh.getRange(cur.row, 2, 1, 6).setNumberFormat('@').setValues([[username, endpoint, p256dh, auth, spend, habit]]);
+  } else {
+    var row = sh.getLastRow() + 1;
+    sh.getRange(row, 1, 1, 9).setNumberFormat('@').setValues([[Date.now(), username, endpoint, p256dh, auth, spend, habit, isoNow_(), '']]);
+  }
+  return { ok: true };
+}
+
+// Xoá đăng ký. Có username thì chỉ xoá nếu đăng ký đó thuộc người đó; không có (server dọn đăng ký đã chết) thì xoá theo endpoint.
+function pushRemove_(p) {
+  var cur = findPush_(String(p.endpoint || ''), p.username ? String(p.username) : '');
+  if (!cur) return { ok: false, error: 'not_found' };
+  ensureSheet_(PUSH_SHEET, PUSH_HEADER).deleteRow(cur.row);
+  return { ok: true };
+}
+
+function pushGet_(p) {
+  var cur = findPush_(String(p.endpoint || ''), String(p.username || ''));
+  if (!cur) return { ok: false, error: 'not_found' };
+  return { ok: true, spend: cur.spend, habit: cur.habit };
+}
+
+function pushList_() {
+  return { ok: true, subs: readPush_().map(publicPush_) };
+}
+
+function pushMark_(p) {
+  var date = String(p.date || '');
+  var cur = findPush_(String(p.endpoint || ''));
+  if (!cur || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: 'invalid' };
+  ensureSheet_(PUSH_SHEET, PUSH_HEADER).getRange(cur.row, 9).setNumberFormat('@').setValue(date);
+  return { ok: true };
+}
+
+// Việc và lượt tích của MỌI người từ "since" (dùng cho nhắc việc lúc 20:00 ở server).
+function habitAll_(p) {
+  var since = /^\d{4}-\d{2}-\d{2}$/.test(String(p.since || '')) ? String(p.since) : dateAdd_(todayVN_(), -3);
+  var habits = [];
+  var hs = ensureSheet_(HABIT_SHEET, HABIT_HEADER);
+  if (hs.getLastRow() >= 2) {
+    hs.getRange(2, 1, hs.getLastRow() - 1, 7).getValues().forEach(function (r) {
+      if (r[0] === '') return;
+      habits.push({ id: Number(r[0]), username: String(r[1]), name: String(r[2]), emoji: String(r[3]), days: String(r[4]),
+                    created_date: dateText_(r[5]), ended_date: r[6] === '' ? '' : dateText_(r[6]) });
+    });
+  }
+  var logs = [];
+  var ls = ensureSheet_(LOG_SHEET, LOG_HEADER);
+  if (ls.getLastRow() >= 2) {
+    ls.getRange(2, 1, ls.getLastRow() - 1, 3).getValues().forEach(function (r) {
+      var d = dateText_(r[0]);
+      if (d >= since) logs.push({ date: d, habit_id: Number(r[1]), username: String(r[2]) });
+    });
+  }
+  return { ok: true, today: todayVN_(), habits: habits, logs: logs };
 }

@@ -49,6 +49,12 @@ URL Apps Script và mã chung chỉ nằm ở server Vercel, không gửi xuốn
 
 Tab **Hằng ngày** (thanh tab dưới trên điện thoại, nút chuyển *Thống kê | Hằng ngày* trên máy tính): mỗi tài khoản tự lập việc (tập thể dục, đọc sách…), chọn các thứ trong tuần, tích khi xong, xem vòng tiến độ, chuỗi ngày liên tiếp và biểu đồ tỷ lệ hoàn thành 7/30 ngày. Dữ liệu nằm ở 2 tab `habits` và `habit_logs` trong Google Sheet (tự tạo lần đầu). **Cần dán `apps-script/Code.gs` mới và deploy phiên bản mới** để dùng chức năng này.
 
+## Thông báo trên điện thoại
+
+Trong **Tài khoản → Thông báo** (chỉ hiện trên điện thoại/máy tính bảng): bật để nhận thông báo khi người khác trong nhà ghi **khoản chi mới**, và **nhắc việc hằng ngày lúc 20:00** nếu còn việc chưa tích. iPhone cần *Thêm vào MH chính* và iOS 16.4 trở lên.
+
+Cần đặt biến môi trường trên Vercel (Production) rồi Redeploy: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (dạng `mailto:ban@example.com`), `CRON_SECRET`. Tạo khoá VAPID bằng `npm install` rồi `npx web-push generate-vapid-keys`. Cron nhắc việc cấu hình trong `vercel.json` (gói Hobby có thể lệch tới ~1 giờ); thử cục bộ: `curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:8000/api/remind`.
+
 ## Dùng như app trên điện thoại
 
 Mở site bằng trình duyệt điện thoại rồi **Thêm vào màn hình chính** (iOS: Chia sẻ → Thêm vào MH chính; Android: nút *Cài app* trong tab Tài khoản). App có thanh tab dưới, mở được khi mất mạng (service worker `sw.js`) và tự gửi các khoản đã nhập lúc offline khi có mạng lại. Cập nhật code không cần cài lại.

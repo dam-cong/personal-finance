@@ -15,6 +15,7 @@ try {
 } catch (e) { console.warn('Không đọc được .env.local — thiếu APPS_SCRIPT_URL / APPS_TOKEN.'); }
 
 const api = require('./api/pf');
+const remind = require('./api/remind');
 const types = {
   '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css',
   '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png',
@@ -25,6 +26,7 @@ const PUBLIC = /^\/(index\.html|parser\.js|habits\.js|sw\.js|favicon\.ico|manife
 
 http.createServer((req, res) => {
   const url = (req.url || '/').split('?')[0];
+  if (url === '/api/remind') return remind(req, res); // thử nhắc việc: curl -H "Authorization: Bearer $CRON_SECRET"
   if (url === '/api/pf') {
     let raw = '';
     req.on('data', (c) => { raw += c; if (raw.length > 1e6) req.destroy(); });
