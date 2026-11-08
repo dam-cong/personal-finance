@@ -1,7 +1,7 @@
 {
   "id": "/",
   "name": "Personal Finance Chat",
-  "short_name": "FamFin",
+  "short_name": "FamFin thông báo",
   "description": "Ghi và xem chi tiêu gia đình qua giao diện chat.",
   "lang": "vi",
   "start_url": "/",

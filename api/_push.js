@@ -108,7 +108,7 @@ async function runReminder(gas, now) {
 function testPayload(kind, user) {
   if (kind === 'spend') return { title: user + ' vừa chi ' + money(45000), body: 'Cafe (thông báo thử)', url: '/?go=chat', tag: 'test-spend' };
   if (kind === 'habit') return { title: 'Nhắc việc hằng ngày', body: 'Hôm nay còn 2 việc chưa xong: Đọc sách, Thiền (thông báo thử)', url: '/?go=habit', tag: 'test-habit' };
-  return { title: 'FamFin', body: 'Thông báo đã hoạt động 🎉', url: '/', tag: 'test' };
+  return { title: 'Thông báo thử', body: 'Thông báo đã hoạt động 🎉', url: '/', tag: 'test' };
 }
 
 // Gửi thử tới các thiết bị của chính người dùng (kind: basic | spend | habit).
