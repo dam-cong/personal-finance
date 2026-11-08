@@ -104,14 +104,21 @@ async function runReminder(gas, now) {
   return out;
 }
 
-// Gửi thử tới các thiết bị của chính người dùng.
-async function sendTest(gas, user) {
+// Mẫu thông báo thử: giống thật để người dùng thấy đúng giao diện từng loại.
+function testPayload(kind, user) {
+  if (kind === 'spend') return { title: user + ' vừa chi ' + money(45000), body: 'Cafe (thông báo thử)', url: '/?go=chat', tag: 'test-spend' };
+  if (kind === 'habit') return { title: 'Nhắc việc hằng ngày', body: 'Hôm nay còn 2 việc chưa xong: Đọc sách, Thiền (thông báo thử)', url: '/?go=habit', tag: 'test-habit' };
+  return { title: 'FamFin', body: 'Thông báo đã hoạt động 🎉', url: '/', tag: 'test' };
+}
+
+// Gửi thử tới các thiết bị của chính người dùng (kind: basic | spend | habit).
+async function sendTest(gas, user, kind) {
   if (!configured()) return { ok: false, error: 'push_not_configured' };
   const d = await gas({ action: 'push_list' });
   if (!d || !d.ok) return { ok: false, error: 'upstream_error' };
   const mine = (d.subs || []).filter(function (s) { return s.username === user; });
   if (!mine.length) return { ok: false, error: 'not_found' };
-  const r = await deliver(gas, mine, { title: 'FamFin', body: 'Thông báo đã hoạt động 🎉', url: '/', tag: 'test' });
+  const r = await deliver(gas, mine, testPayload(kind, user));
   return { ok: true, sent: r.sent };
 }
 

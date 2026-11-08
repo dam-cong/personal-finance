@@ -166,7 +166,7 @@ async function handler(req, res) {
       return send(res, d.ok ? 200 : 404, d);
     }
     if (b.action === 'push_test') {
-      const d = await push.sendTest(gas, user);
+      const d = await push.sendTest(gas, user, b.kind === 'spend' || b.kind === 'habit' ? b.kind : 'basic');
       return send(res, d.ok ? 200 : (d.error === 'not_found' ? 404 : 400), d);
     }
     return send(res, 400, { ok: false, error: 'unknown_action' });

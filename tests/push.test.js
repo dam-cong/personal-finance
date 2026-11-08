@@ -105,6 +105,22 @@ test('runReminder: tôn trọng công tắc habit và việc đã kết thúc', 
   assert.strictEqual(n, 0);
 });
 
+test('sendTest: gửi đúng mẫu theo loại, chỉ tới thiết bị của chính user', async () => {
+  const sent = [];
+  push.setSender(async (s, payload) => { sent.push([s.endpoint, payload]); return 'ok'; });
+  const st = { subs: [sub('hiendc', 'h1'), sub('trangdt', 't1')] };
+  const gas = fakeGas(st);
+  await push.sendTest(gas, 'hiendc', 'spend');
+  await push.sendTest(gas, 'hiendc', 'habit');
+  await push.sendTest(gas, 'hiendc', 'basic');
+  assert.deepStrictEqual(sent.map((x) => x[0]), ['h1', 'h1', 'h1']);
+  assert.match(sent[0][1].title, /hiendc vừa chi 45.000đ/);
+  assert.strictEqual(sent[1][1].url, '/?go=habit');
+  assert.strictEqual(sent[2][1].tag, 'test');
+  const none = await push.sendTest(gas, 'nguoila', 'basic');
+  assert.strictEqual(none.error, 'not_found');
+});
+
 function callHandler(h, req) {
   return new Promise((resolve) => {
     const res = { headers: {}, setHeader(k, v) { this.headers[k] = v; }, end(s) { resolve({ status: this.statusCode, body: JSON.parse(s) }); } };

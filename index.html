@@ -421,7 +421,9 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
   .sw input:checked + i { background: var(--primary); }
   .sw input:checked + i::after { transform: translateX(20px); }
   .sw input:focus-visible + i { box-shadow: 0 0 0 2px var(--primary); }
-  .nbtns { display: flex; justify-content: space-between; }
+  .nbtns { display: flex; justify-content: center; }
+  .ntests { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ntests .pill { padding: 10px 8px; font-size: 12px; }
   .presets.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .presets.scroll::-webkit-scrollbar { display: none; }
   .presets button { flex: none; }
@@ -539,11 +541,15 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
     <button class="btn withic hidden" id="btnInstall" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Cài app lên màn hình chính</button>
     <div class="syncinfo hidden" id="installHint">Cài app: bấm nút Chia sẻ trong Safari rồi chọn “Thêm vào MH chính”.</div>
     <div class="notif hidden" id="notifBox">
-      <div class="field"><label>Thông báo trên thiết bị này</label></div>
+      <div class="field"><label id="notifTitle">Thông báo trên thiết bị này</label></div>
       <div class="hidden" id="notifOn">
         <div class="trow"><span>Khoản chi mới của người khác</span><label class="sw"><input type="checkbox" id="swSpend" aria-label="Thông báo khoản chi mới"><i></i></label></div>
         <div class="trow"><span>Nhắc việc hằng ngày lúc 20:00</span><label class="sw"><input type="checkbox" id="swHabit" aria-label="Nhắc việc hằng ngày"><i></i></label></div>
-        <div class="nbtns"><button class="link" id="btnNotifTest" type="button">Gửi thử</button><button class="link danger" id="btnNotifOff" type="button">Tắt thông báo</button></div>
+        <div class="nbtns"><button class="link danger" id="btnNotifOff" type="button">Tắt thông báo trên thiết bị này</button></div>
+      </div>
+      <div class="notif hidden" id="notifTests">
+        <button class="btn withic" id="btnNotifTest" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Kiểm tra thông báo</button>
+        <div class="ntests"><button class="pill ntest" data-kind="spend" type="button">Thử: khoản chi mới</button><button class="pill ntest" data-kind="habit" type="button">Thử: nhắc việc</button></div>
       </div>
       <button class="btn withic hidden" id="btnNotifOn" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Bật thông báo</button>
       <div class="syncinfo" id="notifInfo"></div>
@@ -2026,10 +2032,16 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
   }
   function renderNotif() {
     var mobile = isMobileDevice();
-    $('notifBox').classList.toggle('hidden', !mobile);
-    if (!mobile) return Promise.resolve(); // website trên máy tính không có thông báo
     var info = $('notifInfo');
-    $('notifOn').classList.add('hidden'); $('btnNotifOn').classList.add('hidden'); info.textContent = '';
+    $('notifBox').classList.remove('hidden');
+    $('notifOn').classList.add('hidden'); $('btnNotifOn').classList.add('hidden'); $('notifTests').classList.add('hidden'); info.textContent = '';
+    if (!mobile) { // website trên máy tính không bật thông báo cho chính nó, chỉ gửi thử tới điện thoại đã bật
+      $('notifTitle').textContent = 'Thông báo trên điện thoại';
+      $('notifTests').classList.remove('hidden');
+      info.textContent = 'Gửi thử tới các điện thoại bạn đã bật thông báo. Muốn bật, hãy mở app này trên điện thoại.';
+      return Promise.resolve();
+    }
+    $('notifTitle').textContent = 'Thông báo trên thiết bị này';
     if (!pushSupported()) {
       info.textContent = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)
         ? 'Để nhận thông báo, hãy Thêm vào MH chính rồi mở app từ icon (cần iOS 16.4 trở lên).'
@@ -2045,7 +2057,7 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
       var saved = null;
       try { saved = JSON.parse(store.get('pf_push') || 'null'); } catch (e) {}
       $('swSpend').checked = saved ? !!saved.spend : true; $('swHabit').checked = saved ? !!saved.habit : true;
-      $('notifOn').classList.remove('hidden');
+      $('notifOn').classList.remove('hidden'); $('notifTests').classList.remove('hidden');
       return call({ action: 'push_get', endpoint: sub.endpoint }).then(function (d) {
         $('swSpend').checked = !!d.spend; $('swHabit').checked = !!d.habit;
         store.set('pf_push', JSON.stringify({ spend: !!d.spend, habit: !!d.habit }));
@@ -2078,9 +2090,16 @@ try { if (navigator.standalone || matchMedia('(display-mode: standalone)').match
       });
     });
   });
-  $('btnNotifTest').addEventListener('click', function () {
-    call({ action: 'push_test' }).then(function () { notice('Đã gửi thông báo thử, chờ vài giây.'); })
-      .catch(function (e) { notice(e.message === 'not_found' ? 'Thiết bị chưa đăng ký, hãy bật lại thông báo.' : friendly(e.message)); });
+  // Gửi thử: nút lớn = thông báo chung; hai nút nhỏ = đúng mẫu thông báo khoản chi / nhắc việc (kèm nội dung mẫu)
+  function sendTestPush(kind, btn) {
+    btn.disabled = true;
+    call({ action: 'push_test', kind: kind }).then(function () { notice('Đã gửi, chờ vài giây để thông báo hiện lên.'); })
+      .catch(function (e) { notice(e.message === 'not_found' ? 'Chưa có điện thoại nào bật thông báo. Hãy bật trên điện thoại trước.' : friendly(e.message)); })
+      .then(function () { setTimeout(function () { btn.disabled = false; }, 1500); });
+  }
+  $('btnNotifTest').addEventListener('click', function () { sendTestPush('basic', this); });
+  document.querySelectorAll('.ntest').forEach(function (b) {
+    b.addEventListener('click', function () { sendTestPush(b.dataset.kind, b); });
   });
   $('btnNotifOff').addEventListener('click', function () {
     pushSub().then(function (sub) {
